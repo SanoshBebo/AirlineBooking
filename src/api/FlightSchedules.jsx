@@ -1,6 +1,19 @@
 import axios from "./axiosInstance";
 
-export const GetFilteredFlightSchedules = async(source,destination,dateTime) => {
+
+
+export const GetAllFlightSchedules = async() => {
+    try{
+        const response = await axios.get("api/FlightSchedules");
+        console.log(response);
+        return response.data;
+    }catch(error){
+        console.error(error);
+        throw error;
+    }
+}
+
+export const GetDirectFlightSchedule = async(source,destination,dateTime) => {
     try{
         const response =  await axios.get(`api/FlightSchedules/${source}/${destination}/${dateTime.toISOString()}`);
         console.log(response);
@@ -11,21 +24,20 @@ export const GetFilteredFlightSchedules = async(source,destination,dateTime) => 
     }
 }
 
-
-export const GetAllFlightSchedules = async() => {
-  try{
-      const response = await axios.get("api/FlightSchedules");
-      console.log(response);
-      return response.data;
-  }catch(error){
-      console.error(error);
-      throw error;
-  }
+export const GetConnectingFlightSchedule = async(source,destination,dateTime) => {
+    try{
+        const response =  await axios.get(`api/FlightSchedules/${source}/${destination}/${dateTime.toISOString()}`);
+        console.log(response);
+        return response.data;
+    }catch(error){
+        console.error(error);
+        throw error;
+    }
 }
 
-export const GetExactFlightSchedule = async(id) => {
+export const GetExactFlightSchedule = async(scheduleid) => {
     try{
-        const response = await axios.get(`api/FlightSchedules${id}`);
+        const response = await axios.get(`api/FlightSchedules${scheduleid}`);
         console.log(response);
         return response.data;
     }catch(error){
@@ -33,7 +45,6 @@ export const GetExactFlightSchedule = async(id) => {
         throw error;
     }
   }
-
 
 
 export const AddScheduleForMonths = async (schedule,months) => {
@@ -51,10 +62,11 @@ export const AddScheduleForMonths = async (schedule,months) => {
     }
   };
 
+
 export const DeleteSchedules = async (idsToDelete) => {
     try {
         const response = await axios.delete('api/FlightSchedules', {
-          data: idsToDelete,
+          data: JSON.stringify(idsToDelete),
           headers: {
             'Content-Type': 'application/json', 
           },
@@ -65,9 +77,10 @@ export const DeleteSchedules = async (idsToDelete) => {
       }
   };
 
-  export const UpdateFlightSchedule = async (id,data) => {
+
+  export const UpdateFlightSchedule = async (id,flightSchedule) => {
     try {
-      const response = await axios.put(`api/FlightSchedules/${id}`, JSON.stringify(data), {
+      const response = await axios.put(`api/FlightSchedules/${id}`, JSON.stringify(flightSchedule), {
         headers: {
           'Content-Type': 'application/json',
         },

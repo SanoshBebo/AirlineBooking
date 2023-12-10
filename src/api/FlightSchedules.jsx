@@ -53,7 +53,7 @@ export const AddScheduleForMonths = async (schedule,months) => {
 
 export const DeleteSchedules = async (idsToDelete) => {
     try {
-        const response = await axios.delete('/api/FlightSchedules', {
+        const response = await axios.delete('api/FlightSchedules', {
           data: idsToDelete,
           headers: {
             'Content-Type': 'application/json', 

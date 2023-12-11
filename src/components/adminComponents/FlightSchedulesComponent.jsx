@@ -5,7 +5,13 @@ import {
   GetAllFlightSchedules,
 } from "../../api/FlightSchedules";
 import { GetFlightDetails } from "../../api/FlightDetails";
-import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+} from "@mui/material";
 import { GetAirports } from "../../api/Airport";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
@@ -18,7 +24,14 @@ const FlightSchedulesComponent = () => {
   const [flights, setFlights] = useState([]);
   const [airports, setAirports] = useState([]);
   const [refresh, setRefresh] = useState(false);
-
+  const [selectedScheduleIds, setSelectedScheduleIds] = useState([]);
+  const [filteredSchedules, setFilteredSchedules] = useState([]);
+  const [filters, setFilters] = useState({
+    flightName: "",
+    date: "",
+    source: "",
+    destination: "",
+  });
   const [newSchedule, setNewSchedule] = useState({
     flightName: "",
     sourceAirportId: "",
@@ -31,18 +44,17 @@ const FlightSchedulesComponent = () => {
   const [monthsList, setMonthsList] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
   useEffect(() => {
+    // Fetch flight schedules, airports, and flights data
     GetAllFlightSchedules().then((res) => {
-      console.log(res);
       setFlightSchedules(res);
+      setFilteredSchedules(res); // Initialize filteredSchedules with all schedules
     });
 
     GetAirports().then((res) => {
-      console.log(res);
       setAirports(res);
     });
 
     GetFlightDetails().then((res) => {
-      console.log(res);
       setFlights(res);
     });
   }, [refresh]);
@@ -52,18 +64,34 @@ const FlightSchedulesComponent = () => {
     setNewSchedule({ ...newSchedule, [name]: value });
   };
 
-  const handleDeleteSchedule = (id) => {
-    DeleteSchedules(id).then(() => {
-      setFlightSchedules(
-        flightSchedules.filter((flight) => flight.ScheduleId !== id)
+  const handleCheckboxChange = (e, scheduleId) => {
+    const { checked } = e.target;
+    if (checked) {
+      setSelectedScheduleIds((prevState) => [...prevState, scheduleId]);
+    } else {
+      setSelectedScheduleIds((prevState) =>
+        prevState.filter((id) => id !== scheduleId)
       );
-      setRefresh(!refresh);
-    });
+    }
+  };
+
+  const handleDeleteSelectedSchedules = () => {
+    if (selectedScheduleIds.length > 0) {
+      DeleteSchedules(selectedScheduleIds).then(() => {
+        setFlightSchedules((prevSchedules) =>
+          prevSchedules.filter(
+            (schedule) => !selectedScheduleIds.includes(schedule.ScheduleId)
+          )
+        );
+        setSelectedScheduleIds([]);
+        setRefresh(!refresh);
+      });
+    }
   };
 
   const handleAddSchedule = (schedule, months) => {
-    console.log(schedule)
-    console.log(months)
+    console.log(schedule);
+    console.log(months);
     AddScheduleForMonths(schedule, months).then((res) => {
       console.log(res);
       setRefresh(!refresh);
@@ -79,13 +107,49 @@ const FlightSchedulesComponent = () => {
     }));
   };
 
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({ ...filters, [name]: value });
+  };
+
+  const applyFilters = () => {
+    const { flightName, date, source, destination } = filters;
+    const filtered = flightSchedules.filter((schedule) => {
+      const flightNameMatch =
+        schedule.FlightName.toLowerCase().includes(flightName.toLowerCase()) ||
+        flightName === "";
+
+      const dateMatch =
+        !date || schedule.DateTime.includes(date) || date === "";
+
+      const sourceMatch = schedule.SourceAirportId === source || source === "";
+
+      const destinationMatch =
+        schedule.DestinationAirportId === destination || destination === "";
+
+      return flightNameMatch && dateMatch && sourceMatch && destinationMatch;
+    });
+    setFilteredSchedules(filtered);
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      flightName: "",
+      date: "",
+      source: "",
+      destination: "",
+    });
+    setFilteredSchedules(flightSchedules);
+  };
+
   return (
-    <div>
-      <div>
-        <h3>FlightSchedules </h3>
-        <div>
-          <h3>Add New Schedule</h3>
-          <FormControl sx={{ m: 1, minWidth: 80 }}>
+    <div className="p-8 bg-gray-100">
+      <h1 className="text-3xl font-bold mb-6">Flight Schedules</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4">Add New Schedule</h2>
+          <FormControl sx={{ m: 1, minWidth: 200 }}>
             <InputLabel id="demo-simple-select-autowidth-label">
               Flight
             </InputLabel>
@@ -108,7 +172,7 @@ const FlightSchedulesComponent = () => {
               ))}
             </Select>
           </FormControl>
-          <FormControl sx={{ m: 1, minWidth: 80 }}>
+          <FormControl sx={{ m: 1, minWidth: 200 }}>
             <InputLabel id="demo-simple-select-autowidth-label">
               Source Airport
             </InputLabel>
@@ -119,7 +183,7 @@ const FlightSchedulesComponent = () => {
               onChange={handleChange}
               name="sourceAirportId"
               autoWidth
-              label="Source"
+              label="Source Airport"
             >
               <MenuItem value="">
                 <em>None</em>
@@ -131,7 +195,7 @@ const FlightSchedulesComponent = () => {
               ))}
             </Select>
           </FormControl>
-          <FormControl sx={{ m: 1, minWidth: 80 }}>
+          <FormControl sx={{ m: 1, minWidth: 200 }}>
             <InputLabel id="demo-simple-select-autowidth-label">
               Destination Airport
             </InputLabel>
@@ -142,7 +206,7 @@ const FlightSchedulesComponent = () => {
               onChange={handleChange}
               autoWidth
               name="destinationAirportId"
-              label="Destination"
+              label="Destination Airport"
             >
               <MenuItem value="">
                 <em>None</em>
@@ -154,9 +218,9 @@ const FlightSchedulesComponent = () => {
               ))}
             </Select>
           </FormControl>
-          <FormControl fullWidth>
+          <FormControl sx={{ m: 1, minWidth: 200 }}>
             <InputLabel id="demo-simple-select-label">
-              No Of Months To Schedule
+              Months
             </InputLabel>
             <Select
               labelId="demo-simple-select-label"
@@ -176,13 +240,13 @@ const FlightSchedulesComponent = () => {
           </FormControl>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DateTimePicker
-              label="Select Date and Time"
+              label="Departure Date and Time"
               value={newSchedule.dateTime}
               onChange={(newValue) => {
                 const formattedDateTime = newValue.format(
                   "YYYY-MM-DDTHH:mm:ss"
                 );
-                console.log(formattedDateTime)
+                console.log(formattedDateTime);
                 setNewSchedule({ ...newSchedule, dateTime: formattedDateTime });
               }}
               renderInput={(params) => <TextField {...params} />}
@@ -190,7 +254,6 @@ const FlightSchedulesComponent = () => {
           </LocalizationProvider>
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-
             <TimePicker
               label="Flight Duration"
               value={newSchedule.flightDuration} // Use the same dateTime state for TimePicker
@@ -199,22 +262,100 @@ const FlightSchedulesComponent = () => {
               ampm={false} // Use 24-hour format
             />
           </LocalizationProvider>
-          <button onClick={() => handleAddSchedule(newSchedule, months)}>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+            onClick={() => handleAddSchedule(newSchedule, months)}
+          >
             Add Airport
           </button>
         </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4">Filter Options</h2>
+          <TextField
+            label="Filter by Flight Name"
+            name="flightName"
+            value={filters.flightName}
+            onChange={handleFilterChange}
+          />
+          <TextField
+            label="Filter by Date"
+            type="date"
+            name="date"
+            value={filters.date}
+            onChange={handleFilterChange}
+            InputLabelProps={{ shrink: true }}
+          />
+          <FormControl sx={{ m: 1, minWidth: 200 }}>
+          <InputLabel id="demo-simple-select-label">
+          Filter by Source
+            </InputLabel>
+          <Select
+            value={filters.source}
+            onChange={handleFilterChange}
+            name="source"
+            label="Filter by Source"
+          >
+            <MenuItem value="">All Sources</MenuItem>
+            {airports.map((airport) => (
+              <MenuItem key={airport.AirportId} value={airport.AirportId}>
+                {airport.AirportName}
+              </MenuItem>
+            ))}
+          </Select>
+          </FormControl>
+          <FormControl sx={{ m: 1, minWidth: 200 }}>
+          <InputLabel id="demo-simple-select-label">
+          Filter by Destination
+            </InputLabel>
+          <Select
+            value={filters.destination}
+            onChange={handleFilterChange}
+            name="destination"
+            label="Filter by Destination"
+          >
+            <MenuItem value="">All Destinations</MenuItem>
+            {airports.map((airport) => (
+              <MenuItem key={airport.AirportId} value={airport.AirportId}>
+                {airport.AirportName}
+              </MenuItem>
+            ))}
+          </Select>
+          </FormControl>
+          <Button onClick={applyFilters}>Apply Filters</Button>
+          <Button onClick={resetFilters}>Reset Filters</Button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold mb-4">Filtered Schedules</h2>
         <ul>
-          {flightSchedules.map((schedule) => (
-            <li key={schedule.ScheduleId}>
+          {filteredSchedules.map((schedule) => (
+            <li
+              key={schedule.ScheduleId}
+              className="flex items-center justify-between border-b py-2"
+            >
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  onChange={(e) => handleCheckboxChange(e, schedule.ScheduleId)}
+                  checked={selectedScheduleIds.includes(schedule.ScheduleId)}
+                  className="form-checkbox h-5 w-5 text-blue-500"
+                />
+                <span>{schedule.FlightName}</span>
+              </label>
               {schedule.FlightName} - {schedule.SourceAirportId} -{" "}
-              {schedule.DestinationAirportId} - {schedule.FlightDuration}
+              {schedule.DestinationAirportId} - {schedule.FlightDuration} -{" "}
               {schedule.DateTime}
-              <button onClick={() => handleDeleteSchedule(schedule.ScheduleId)}>
-                Delete
-              </button>
             </li>
           ))}
         </ul>
+        <button
+          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
+          onClick={handleDeleteSelectedSchedules}
+        >
+          Delete Selected Schedules
+        </button>
       </div>
     </div>
   );

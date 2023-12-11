@@ -16,7 +16,7 @@ function App() {
         path="/admin-page"
         element={
           <Layout>
-            <FlightSchedulesComponent />
+            <AdminHome />
           </Layout>
         }
       />

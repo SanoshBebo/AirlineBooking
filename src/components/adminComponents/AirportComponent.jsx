@@ -1,93 +1,132 @@
-import React, {useState,useEffect} from 'react'
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { AddAirport, DeleteAirport, GetAirports } from "../../api/Airport";
-const AirportComponent = () => {
-    const [airports, setAirports] = useState([]);
-    const [refresh, setRefresh] = useState(false);
-    const [newAirport, setNewAirport] = useState({
-      AirportId: "",
-      City: "",
-      AirportName: "",
-      State: ""
-    });
-  
-    useEffect(() => {
-      GetAirports().then((res)=>{
-        console.log(res)
-        setAirports(res)
-      })
-    }, [refresh]);
-  
-    const handleInputChange = (e) => {
-      const { name, value } = e.target;
-      setNewAirport({ ...newAirport, [name]: value });
-    };
-  
-    const handleAddAirport = () => {
-      AddAirport(newAirport).then((res)=>{
-        console.log(res)
-        setRefresh(!refresh);
-      })
-  
-    };
-  
-    const handleDeleteAirport = (id) => {
-      DeleteAirport(id).then(() => {
-        setAirports(airports.filter((airport) => airport.airportId !== id));
-        setRefresh(!refresh);
-      });
-    };
-  
-    return (
-      <div>
-        <h2>Admin Dashboard</h2>
-        <div>
-          <h3>Add New Airport</h3>
-          <input
-            type="text"
-            placeholder="Airport ID"
-            name="AirportId"
-            value={newAirport.AirportId}
-            onChange={handleInputChange}
-          />
-          <input
-            type="text"
-            placeholder="City"
-            name="City"
-            value={newAirport.City}
-            onChange={handleInputChange}
-          />
-          <input
-            type="text"
-            placeholder="Airport Name"
-            name="AirportName"
-            value={newAirport.AirportName}
-            onChange={handleInputChange}
-          />
-          <input
-            type="text"
-            placeholder="State"
-            name="State"
-            value={newAirport.State}
-            onChange={handleInputChange}
-          />
-          <button onClick={handleAddAirport}>Add Airport</button>
-        </div>
-        <div>
-          <h3>Airports List</h3>
-          <ul>
-            {airports.map((airport) => (
-              <li key={airport.AirportId}>
-                {airport.AirportId} - {airport.AirportName} - {airport.City} - {airport.State}
-                <button onClick={() => handleDeleteAirport(airport.AirportId)}>
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    );
-}
 
-export default AirportComponent
+const AirportComponent = () => {
+  const [airports, setAirports] = useState([]);
+  const [refresh, setRefresh] = useState(false);
+  const [newAirport, setNewAirport] = useState({
+    AirportId: "",
+    City: "",
+    AirportName: "",
+    State: "",
+  });
+
+  useEffect(() => {
+    GetAirports().then((res) => {
+      setAirports(res);
+    });
+  }, [refresh]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewAirport({ ...newAirport, [name]: value });
+  };
+
+  const handleAddAirport = () => {
+    AddAirport(newAirport).then(() => {
+      setRefresh(!refresh);
+      setNewAirport({
+        AirportId: "",
+        City: "",
+        AirportName: "",
+        State: "",
+      });
+    });
+  };
+
+  const handleDeleteAirport = (id) => {
+    DeleteAirport(id).then(() => {
+      setAirports(airports.filter((airport) => airport.AirportId !== id));
+      setRefresh(!refresh);
+    });
+  };
+
+  return (
+    <div className="container mx-auto p-6">
+      <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Add New Airport</h3>
+        <input
+          type="text"
+          placeholder="Airport ID"
+          name="AirportId"
+          value={newAirport.AirportId}
+          onChange={handleInputChange}
+          className="block w-full px-4 py-2 border border-gray-300 rounded mb-2 focus:outline-none"
+        />
+        <input
+          type="text"
+          placeholder="City"
+          name="City"
+          value={newAirport.City}
+          onChange={handleInputChange}
+          className="block w-full px-4 py-2 border border-gray-300 rounded mb-2 focus:outline-none"
+        />
+        <input
+          type="text"
+          placeholder="Airport Name"
+          name="AirportName"
+          value={newAirport.AirportName}
+          onChange={handleInputChange}
+          className="block w-full px-4 py-2 border border-gray-300 rounded mb-2 focus:outline-none"
+        />
+        <input
+          type="text"
+          placeholder="State"
+          name="State"
+          value={newAirport.State}
+          onChange={handleInputChange}
+          className="block w-full px-4 py-2 border border-gray-300 rounded mb-2 focus:outline-none"
+        />
+        <button
+          onClick={handleAddAirport}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
+        >
+          Add Airport
+        </button>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold mb-2">Airports List</h3>
+        <table className="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border border-gray-300 px-4 py-2">Airport ID</th>
+              <th className="border border-gray-300 px-4 py-2">Airport Name</th>
+              <th className="border border-gray-300 px-4 py-2">City</th>
+              <th className="border border-gray-300 px-4 py-2">State</th>
+              <th className="border border-gray-300 px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {airports.map((airport) => (
+              <tr key={airport.AirportId} className="bg-white">
+                <td className="border border-gray-300 px-4 py-2">
+                  {airport.AirportId}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {airport.AirportName}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {airport.City}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {airport.State}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <button
+                    onClick={() => handleDeleteAirport(airport.AirportId)}
+                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default AirportComponent;

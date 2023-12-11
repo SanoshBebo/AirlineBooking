@@ -46,7 +46,6 @@ export const GetExactFlightSchedule = async(scheduleid) => {
 
 
 export const AddScheduleForMonths = async (schedule,months) => {
-  console.log("hi")
     try {
       const response = await axios.post(`api/FlightSchedules/${months}`, JSON.stringify(schedule), {
         headers: {
@@ -66,7 +65,7 @@ export const DeleteSchedules = async (idsToDelete) => {
   console.log(idsToDelete)
     try {
         const response = await axios.delete('api/FlightSchedules', {
-          data: JSON.stringify(idsToDelete),
+          data: idsToDelete,
           headers: {
             'Content-Type': 'application/json', 
           },

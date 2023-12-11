@@ -13,7 +13,7 @@ export const GetAllFlightSchedules = async() => {
 
 export const GetDirectFlightSchedule = async(source,destination,dateTime) => {
     try{
-        const response =  await axios.get(`api/FlightSchedules/${source}/${destination}/${dateTime.toISOString()}`);
+        const response =  await axios.get(`api/FlightSchedules/${source}/${destination}/${dateTime}`);
         console.log(response);
         return response.data;
     }catch(error){
@@ -24,7 +24,7 @@ export const GetDirectFlightSchedule = async(source,destination,dateTime) => {
 
 export const GetConnectingFlightSchedule = async(source,destination,dateTime) => {
     try{
-        const response =  await axios.get(`api/FlightSchedules/${source}/${destination}/${dateTime.toISOString()}`);
+        const response =  await axios.get(`api/FlightSchedules/connectingflight/${source}/${destination}/${dateTime}`);
         console.log(response);
         return response.data;
     }catch(error){

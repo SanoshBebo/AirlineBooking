@@ -266,7 +266,7 @@ const FlightSchedulesComponent = () => {
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
             onClick={() => handleAddSchedule(newSchedule, months)}
           >
-            Add Airport
+            Add Schedule
           </button>
         </div>
 

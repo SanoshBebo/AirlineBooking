@@ -20,7 +20,7 @@ const Header = () => {
   return (
     <div className="bg-zinc-950 p-3">
       <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-white text-l md:text-2xl lg:text-3xl  font-bold">Business Reports</h1>
+        <h1 className="text-white text-l md:text-2xl lg:text-3xl  font-bold">Sanosh Airlines</h1>
         <div className="space-x-4">
           {user && (
             <>

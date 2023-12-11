@@ -1,7 +1,5 @@
 import axios from "./axiosInstance";
 
-
-
 export const GetAllFlightSchedules = async() => {
     try{
         const response = await axios.get("api/FlightSchedules");
@@ -48,6 +46,7 @@ export const GetExactFlightSchedule = async(scheduleid) => {
 
 
 export const AddScheduleForMonths = async (schedule,months) => {
+  console.log("hi")
     try {
       const response = await axios.post(`api/FlightSchedules/${months}`, JSON.stringify(schedule), {
         headers: {
@@ -64,6 +63,7 @@ export const AddScheduleForMonths = async (schedule,months) => {
 
 
 export const DeleteSchedules = async (idsToDelete) => {
+  console.log(idsToDelete)
     try {
         const response = await axios.delete('api/FlightSchedules', {
           data: JSON.stringify(idsToDelete),

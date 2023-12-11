@@ -3,6 +3,8 @@ import AdminHome from './pages/admin/AdminHome'
 import Login from './pages/login/login';
 import Layout from './components/Layout';
 import FlightComponent from "./components/adminComponents/FlightComponent";
+import AirportComponent from "./components/adminComponents/AirportComponent";
+import FlightSchedulesComponent from "./components/adminComponents/FlightSchedulesComponent";
 
 function App() {
   return (
@@ -14,7 +16,7 @@ function App() {
         path="/admin-page"
         element={
           <Layout>
-            <FlightComponent />
+            <FlightSchedulesComponent />
           </Layout>
         }
       />

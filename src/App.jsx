@@ -6,6 +6,8 @@ import FlightComponent from "./components/adminComponents/FlightComponent";
 import AirportComponent from "./components/adminComponents/AirportComponent";
 import FlightSchedulesComponent from "./components/adminComponents/FlightSchedulesComponent";
 import UserHome from "./pages/user/UserHome";
+import FlightBooking from "./pages/user/FlightBooking";
+import ConfirmBooking from "./pages/user/ConfirmBooking";
 
 function App() {
   return (
@@ -26,6 +28,22 @@ function App() {
         element={
           <Layout>
             <UserHome />
+          </Layout>
+        }
+      />
+      <Route
+        path="/FlightBookingDetail/:mode"
+        element={
+          <Layout>
+            <FlightBooking />
+          </Layout>
+        }
+      />
+      <Route
+        path="/FlightBooking/ConfirmBooking"
+        element={
+          <Layout>
+            <ConfirmBooking />
           </Layout>
         }
       />

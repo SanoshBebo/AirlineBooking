@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   user: null,
+  passengers:[],
 };
 
 const UserSlice = createSlice({
@@ -10,6 +11,9 @@ const UserSlice = createSlice({
   reducers: {
     setUser: (state, action) => {
       state.user = action.payload;
+    },
+    addPassenger: (state, action) => {
+      state.passengers.push(action.payload);
     },
     loadUserFromStorage: (state) => {
       const userString = localStorage.getItem("user");
@@ -20,6 +24,6 @@ const UserSlice = createSlice({
   },
 });
 
-export const { setUser, loadUserFromStorage } = UserSlice.actions;
+export const { setUser, loadUserFromStorage,addPassenger } = UserSlice.actions;
 
 export default UserSlice.reducer;

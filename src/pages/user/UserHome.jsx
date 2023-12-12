@@ -21,7 +21,7 @@ import { TimePicker } from "@mui/x-date-pickers";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const UserHome = () => {
   const [flightSchedules, setFlightSchedules] = useState([]);
@@ -33,7 +33,7 @@ const UserHome = () => {
   const [refresh, setRefresh] = useState(false);
   const [selectedScheduleIds, setSelectedScheduleIds] = useState([]);
   const [filteredSchedules, setFilteredSchedules] = useState([]);
-
+  const navigate = useNavigate();
   const [newSchedule, setNewSchedule] = useState({
     flightName: "",
     sourceAirportId: "",
@@ -155,6 +155,22 @@ const UserHome = () => {
     setFilteredSchedules(flightSchedules);
   };
 
+  const handleFlightClick = (flight,mode) => {
+    const flightDetails = JSON.stringify(flight);
+    sessionStorage.setItem('directflight', flightDetails);
+    navigate(`/FlightBookingDetail/${mode}`)
+  };
+  const handleConnectingFlightClick = (firstflight,secondflight,mode) => {
+    const connectingFlights = {
+      firstflight,
+      secondflight
+    }
+    console.log(connectingFlights)
+    const connectingFlightDetails = JSON.stringify(connectingFlights);
+    console.log(connectingFlightDetails)
+    sessionStorage.setItem('connectingFlights', connectingFlightDetails);
+    navigate(`/FlightBookingDetail/${mode}`)
+  };
   return (
     <div className="flex flex-col p-5 w-full justify-center items-center">
       <div className="flex flex-col gap-4 p-5">
@@ -241,12 +257,11 @@ const UserHome = () => {
       <div className="m-5">
         <ul>
           {directFlights.map((flight) => (
-            <Link
-              to={`/FlightBookingDetail/${flight.SourceAirportId}/${flight.DestinationAirportId}/${flight.DateTime}`}
-            >
+            
               <li
                 key={flight.ScheduleId}
                 className="flex items-center border-b py-2 border border-1 p-6 m-4 hover:cursor-pointer"
+                onClick={() => handleFlightClick(flight,"singleTrip")}
               >
                 <p className="flex items-center space-x-2">
                   <span>{flight.FlightName}</span>
@@ -254,7 +269,6 @@ const UserHome = () => {
                 {flight.SourceAirportId} - {flight.DestinationAirportId} -{" "}
                 {flight.FlightDuration} - {flight.DateTime}
               </li>
-            </Link>
           ))}
         </ul>
       </div>
@@ -264,7 +278,8 @@ const UserHome = () => {
           <div key={index} className="flex justify-between">
             <div className="">
               {connection.SecondFlight.map((flight, i) => (
-                <div key={i} className="flex flex-row-reverse border p-2 hover:cursor-pointer m-5">
+                <div key={i} className="flex flex-row-reverse border p-2 hover:cursor-pointer m-5"
+                 onClick={() => handleConnectingFlightClick(flight,connection.FirstFlight,"connectingTrip")}>
                   <div className="p-5">
                     <ul>
                       <li>{flight.FlightName}</li>

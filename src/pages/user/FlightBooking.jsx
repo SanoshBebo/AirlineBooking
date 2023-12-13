@@ -192,7 +192,7 @@ const navigate = useNavigate()
         <div className="flex seat-group">
           {formattedRow.slice(0, 3)} {/* Display ABC group */}
         </div>
-        <div className="w-4" /> {/* Add Tailwind CSS class for the gap */}
+        <div className="w-4" />
         <div className="flex seat-group">
           {formattedRow.slice(3)} {/* Display DEF group */}
         </div>
@@ -287,7 +287,6 @@ const navigate = useNavigate()
         SeatNo: passengerSeatSelections[index] || '',
       }));
       sessionStorage.setItem("SingleFlightBookingInfo",JSON.stringify(updatedPassengerDetails))
-      setIsConfirmBooking(!isConfirmBooking);
       navigate("/FlightBooking/ConfirmBooking");
     }else if(mode == "connectingTrip" && isFirstConnectedFlight){
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({

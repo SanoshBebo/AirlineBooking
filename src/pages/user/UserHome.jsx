@@ -68,6 +68,8 @@ const UserHome = () => {
 
   const [roundTripDetails, setRoundTripDetails] = useState([]);
 
+
+
   /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// ///////////////////////////////////////////////
   useEffect(() => {
     // Fetch flight schedules, airports, and flights data
@@ -428,7 +430,7 @@ const UserHome = () => {
                 <li
                   key={flight.ScheduleId}
                   className="flex items-center border-b py-2 border border-1 p-6 m-4 hover:cursor-pointer"
-                  onClick={() => {}}
+                  onClick={() => {handleFlightClick(flight,"singleTrip")}}
                 >
                   <p className="flex items-center space-x-2">
                     <span>{flight.FlightName}</span>

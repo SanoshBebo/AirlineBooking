@@ -365,6 +365,8 @@ const navigate = useNavigate()
           />
         )) ||
         ((mode === 'connectingTrip' && isFirstConnectedFlight && (
+          <div>
+            <h1>FirstFlight Connected Trip</h1>
           <SeatDisplay
             seatlist={connectingFlightFirstSeatRows}
             book={() =>
@@ -372,11 +374,14 @@ const navigate = useNavigate()
                 firstConnectedFlightScheduleId,
                 'Booked',
                 connectingFlightFirstSelectedSeats
-              )
-            }
-          />
+                )
+              }
+              />
+              </div>
         )) ||
           (mode === 'connectingTrip' && isSecondConnectedFlight && (
+            <div>
+            <h1>SecondFlight Connected Trip</h1>
             <SeatDisplay
               seatlist={connectingFlightSecondSeatRows}
               book={() =>
@@ -387,6 +392,7 @@ const navigate = useNavigate()
                 )
               }
             />
+          </div>
           )))
       )}
         {getUserDetails &&

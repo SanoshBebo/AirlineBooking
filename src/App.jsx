@@ -8,6 +8,7 @@ import FlightSchedulesComponent from "./components/adminComponents/FlightSchedul
 import UserHome from "./pages/user/UserHome";
 import FlightBooking from "./pages/user/FlightBooking";
 import ConfirmBooking from "./pages/user/ConfirmBooking";
+import RoundTripBooking from "./pages/user/RoundTripBooking";
 
 function App() {
   return (
@@ -44,6 +45,14 @@ function App() {
         element={
           <Layout>
             <ConfirmBooking />
+          </Layout>
+        }
+      />
+      <Route
+        path="/RoundTripBookingDetail"
+        element={
+          <Layout>
+            <RoundTripBooking />
           </Layout>
         }
       />

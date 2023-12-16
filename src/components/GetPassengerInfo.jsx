@@ -31,45 +31,66 @@ const GetPassengerInfo = ({ userDetails }) => {
 
   const renderPassengerInputs = () => {
     return passengers.map((passenger, index) => (
-      <div key={index}>
-        <h3>Passenger {index + 1}</h3>
-        <input
-          type="text"
-          placeholder="Name"
-          name="Name"
-          value={passenger.Name}
-          onChange={(e) => handleInputChange(index, e)}
-          className="block w-full px-4 py-2 border border-gray-300 rounded mb-2 focus:outline-none"
-        />
-        <input
-          type="number"
-          placeholder="Age"
-          name="Age"
-          value={passenger.Age}
-          onChange={(e) => handleInputChange(index, e)}
-          className="block w-full px-4 py-2 border border-gray-300 rounded mb-2 focus:outline-none"
-        />
-        <select
-          name="Gender"
-          value={passenger.Gender}
-          onChange={(e) => handleInputChange(index, e)}
-          className="block w-full px-4 py-2 border border-gray-300 rounded mb-2 focus:outline-none"
+      <div key={index} className="my-4 p-4 border rounded shadow-lg">
+        <h3 className="text-lg font-semibold mb-4">Passenger {index + 1}</h3>
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Name"
+            name="Name"
+            value={passenger.Name}
+            onChange={(e) => handleInputChange(index, e)}
+            className="w-full px-4 py-2 border rounded focus:outline-none focus:border-blue-500"
+          />
+        </div>
+        <div className="mb-4">
+          <input
+            type="number"
+            placeholder="Age"
+            name="Age"
+            value={passenger.Age}
+            onChange={(e) => handleInputChange(index, e)}
+            className="w-full px-4 py-2 border rounded focus:outline-none focus:border-blue-500"
+          />
+        </div>
+        <div className="mb-4">
+          <select
+            name="Gender"
+            value={passenger.Gender}
+            onChange={(e) => handleInputChange(index, e)}
+            className="w-full px-4 py-2 border rounded focus:outline-none focus:border-blue-500"
+          >
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <button
+          onClick={() => handleRemovePassenger(index)}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none"
         >
-          <option value="">Select Gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-        <button onClick={() => handleRemovePassenger(index)}>Remove</button>
+          Remove
+        </button>
       </div>
     ));
   };
-
+  
   return (
-    <div>
-      <h2>Enter Passenger Information</h2>
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-4">Enter Passenger Information</h2>
       {renderPassengerInputs()}
-      <button onClick={handleAddPassenger}>Add New Passenger</button>
-      <button onClick={() => userDetails(passengers)}>Confirm Passengers</button>
+      <button
+        onClick={handleAddPassenger}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none mr-2"
+      >
+        Add New Passenger
+      </button>
+      <button
+        onClick={() => userDetails(passengers)}
+        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none"
+      >
+        Confirm Passengers
+      </button>
     </div>
   );
 };

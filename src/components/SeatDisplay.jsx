@@ -3,7 +3,6 @@ import React from 'react'
 const SeatDisplay = ({seatlist,book}) => {
   return (
     <div>
-
     <div className="single-flight-grid">
     {seatlist}
   </div>

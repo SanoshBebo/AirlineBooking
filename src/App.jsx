@@ -9,6 +9,7 @@ import UserHome from "./pages/user/UserHome";
 import FlightBooking from "./pages/user/FlightBooking";
 import ConfirmBooking from "./pages/user/ConfirmBooking";
 import RoundTripBooking from "./pages/user/RoundTripBooking";
+import BookingHistory from "./pages/user/BookingHistory";
 
 function App() {
   return (
@@ -53,6 +54,14 @@ function App() {
         element={
           <Layout>
             <RoundTripBooking />
+          </Layout>
+        }
+      />
+      <Route
+        path="/BookingHistory"
+        element={
+          <Layout>
+            <BookingHistory />
           </Layout>
         }
       />

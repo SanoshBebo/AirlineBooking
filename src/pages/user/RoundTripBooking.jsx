@@ -172,7 +172,6 @@ const RoundTripBooking = () => {
           "FlightTwo",
           JSON.stringify(updatedPassengerDetails)
         );
-        console.log(data);
 
         ChangeSeatStatus(scheduleid, status, seatList)
           .then((res) => {
@@ -279,8 +278,8 @@ const RoundTripBooking = () => {
   const arrangeSeats = (seats, setSeatRows, selectedSeats, setUpdateFlag) => {
     const seatMap = {};
     const rows = [];
-    const seatOrder = ["A", "B", "C", "D", "E", "F"];
-
+    const seatOrder = ['A', 'B', 'C', 'D', 'E', 'F'];
+  
     seats.forEach((seat) => {
       const row = seat.SeatNumber.charAt(0);
       const col = parseInt(seat.SeatNumber.substring(1));
@@ -289,43 +288,40 @@ const RoundTripBooking = () => {
       }
       seatMap[row][col] = seat;
     });
-
+  
     for (let i = 1; i <= 17; i++) {
       const formattedRow = seatOrder.map((row, index) => {
         const seat = seatMap[row] ? seatMap[row][i] : null;
         const isFirstGroup = index < 3; // Rows A, B, C
         const isSecondGroup = index >= 3; // Rows D, E, F
-
+  
         return (
           <div
             key={seat ? seat.SeatNumber : `${row}-${i}`}
-            className={`seat p-2 m-2 border ${
+            className={`seat p-2 m-2 border  ${
               seat && selectedSeats.includes(seat.SeatNumber)
-                ? "bg-green-300 cursor-pointer"
-                : seat && seat.Status === "Available"
-                ? "bg-white cursor-pointer"
-                : "bg-gray-200 cursor-not-allowed disabled "
+                ? 'bg-green-300 cursor-pointer'
+                : seat && seat.Status === 'Available'
+                ? 'bg-white cursor-pointer'
+                : seat
+                ? 'bg-gray-200 cursor-not-allowed disabled'
+                : 'hidden'
             }`}
             onClick={() => seat && selectSeat(seat, mode)}
           >
-            {seat ? seat.SeatNumber : ""}
+            {seat && (seat.Status === 'Available' || seat.Status === 'Booked') ? seat.SeatNumber : ""}
           </div>
         );
+        
       });
-
+  
       rows.push(
-        <div key={i} className="seat-row flex">
-          <div className="flex seat-group">
-            {formattedRow.slice(0, 3)} {/* Display ABC group */}
-          </div>
-          <div className="w-4" />
-          <div className="flex seat-group">
-            {formattedRow.slice(3)} {/* Display DEF group */}
-          </div>
+        <div key={i} className="flex seat-row">
+          {formattedRow} {/* Display all seats in a row */}
         </div>
       );
     }
-
+  
     setSeatRows(rows);
   };
 

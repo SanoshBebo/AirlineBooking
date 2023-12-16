@@ -52,10 +52,10 @@ const Login = () => {
           console.log("Login successful");
           dispatch(setUser(response.User));
           localStorage.setItem("user", JSON.stringify(response.User));
-          if (response.User.Role === "user") {
-            navigate("/user-page");
-          } else if (response.User.Role === "admin") {
-            navigate("/admin-page");
+          if (response.User.Role == "user") {
+            navigate("/userhome");
+          } else if (response.User.Role == "admin") {
+            navigate("/admindashboard");
           }
         } else {
           console.error("Login failed. Server returned an error.");

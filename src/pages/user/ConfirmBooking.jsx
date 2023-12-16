@@ -17,6 +17,7 @@ const ConfirmBooking = () => {
     useState("");
   const [bookingType, setBookingType] = useState("");
   const navigate = useNavigate();
+  const [refresh, setRefresh] = useState(true);
 
   const [firstFlightPassengerDetails, setFirstFlightPassengerDetails] =
     useState([]);
@@ -27,7 +28,7 @@ const ConfirmBooking = () => {
     useState([]);
   const [secondFlightScheduleDetails, setSecondFlightScheduleDetails] =
     useState([]);
-
+    const [isBookingReady, setIsBookingReady] = useState(false);
   useEffect(() => {
     const userdata = JSON.parse(localStorage.getItem("user"));
     setUserData(userdata);
@@ -94,32 +95,54 @@ const ConfirmBooking = () => {
       console.log(ConnectingFlightPassengerDetails);
       setFlightType("connectingFlights");
     }
-  }, []);
+  }, [refresh]);
 
-  const handleConfirmBooking = () => {
+  useEffect(() => {
+    if (isBookingReady) {
+      MakeBooking(connectingFlightBookingModel)
+        .then((res) => {
+          console.log(res);
+          
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+        setIsBookingReady(false);
+        sessionStorage.clear("");
+        navigate("/BookingHistory");
+      }
+  }, [isBookingReady, connectingFlightBookingModel]);
+  
+  const handleConfirmBooking = async () => {
     if (bookingType == "roundtrip") {
       if (roundTripFirstflightType == "directflight") {
-        let BookingModel = [
-          {
-            Status: "Booked",
-            PassengerInfos: firstFlightPassengerDetails,
-            UserId: userData.UserId,
-            BookingType: "Onward",
-            ScheduleId: firstFlightScheduleDetails.ScheduleId,
-            DateTime: firstFlightScheduleDetails.DateTime,
-            DestinationAirportId:
-              firstFlightScheduleDetails.DestinationAirportId,
-            FlightName: firstFlightScheduleDetails.FlightName,
-            SourceAirportId: firstFlightScheduleDetails.SourceAirportId,
-            AirlineName: "SanoshAirlines",
-          },
-        ];
-        
-        setConnectingFlightBookingModel(...BookingModel)
-      } else if (roundTripFirstflightType == "connectingFlights") {
-        let firstFlightBookingModel = {
+        let BookingModel = {
           Status: "Booked",
           PassengerInfos: firstFlightPassengerDetails,
+          UserId: userData.UserId,
+          BookingType: "Onward",
+          ScheduleId: firstFlightScheduleDetails.ScheduleId,
+          DateTime: firstFlightScheduleDetails.DateTime,
+          DestinationAirportId: firstFlightScheduleDetails.DestinationAirportId,
+          FlightName: firstFlightScheduleDetails.FlightName,
+          SourceAirportId: firstFlightScheduleDetails.SourceAirportId,
+          AirlineName: "SanoshAirlines",
+        };
+        let data = [BookingModel];
+        setConnectingFlightBookingModel([BookingModel]);
+        console.log(connectingFlightBookingModel)
+      } else if (roundTripFirstflightType == "connectingFlights") {
+        let halfIndex = Math.floor(firstFlightPassengerDetails.length / 2);
+        let firstHalfPassengerDetails = firstFlightPassengerDetails.slice(
+          0,
+          halfIndex
+        );
+        let secondHalfPassengerDetails =
+          firstFlightPassengerDetails.slice(halfIndex);
+
+        let firstFlightBookingModel = {
+          Status: "Booked",
+          PassengerInfos: firstHalfPassengerDetails,
           UserId: userData.UserId,
           BookingType: "Onward",
           ScheduleId: firstFlightScheduleDetails.firstflight.ScheduleId,
@@ -134,7 +157,7 @@ const ConfirmBooking = () => {
 
         let secondFlightBookingModel = {
           Status: "Booked",
-          PassengerInfos: firstFlightPassengerDetails,
+          PassengerInfos: secondHalfPassengerDetails,
           UserId: userData.UserId,
           BookingType: "Onward",
           ScheduleId: firstFlightScheduleDetails.secondflight.ScheduleId,
@@ -146,46 +169,40 @@ const ConfirmBooking = () => {
             firstFlightScheduleDetails.secondflight.SourceAirportId,
           AirlineName: "SanoshAirlines",
         };
-        let data = [
-          ...connectingFlightBookingModel,
-          firstFlightBookingModel,
-          secondFlightBookingModel,
-        ];
-
-        setConnectingFlightBookingModel(...data);
-
+        let combined = [firstFlightBookingModel, secondFlightBookingModel];
+        setConnectingFlightBookingModel(combined);
+        console.log(connectingFlightBookingModel);
       }
 
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
       if (roundTripSecondflightType == "directflight") {
-        let BookingModel = [
-          {
-            Status: "Booked",
-            PassengerInfos: secondFlightPassengerDetails,
-            UserId: userData.UserId,
-            BookingType: "Onward",
-            ScheduleId: secondFlightScheduleDetails.ScheduleId,
-            DateTime: secondFlightScheduleDetails.DateTime,
-            DestinationAirportId:
-              secondFlightScheduleDetails.DestinationAirportId,
-            FlightName: secondFlightScheduleDetails.FlightName,
-            SourceAirportId: secondFlightScheduleDetails.SourceAirportId,
-            AirlineName: "SanoshAirlines",
-          },
-        ];
-        let data = [...connectingFlightBookingModel,...BookingModel]
-        console.log(data);
-        MakeBooking(data)
-          .then((res) => {
-            console.log(res);
-            sessionStorage.clear("");
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-      } else if (roundTripSecondflightType == "connectingFlights") {
-        let firstFlightBookingModel = {
+        let BookingModel = {
           Status: "Booked",
           PassengerInfos: secondFlightPassengerDetails,
+          UserId: userData.UserId,
+          BookingType: "Onward",
+          ScheduleId: secondFlightScheduleDetails.ScheduleId,
+          DateTime: secondFlightScheduleDetails.DateTime,
+          DestinationAirportId:
+            secondFlightScheduleDetails.DestinationAirportId,
+          FlightName: secondFlightScheduleDetails.FlightName,
+          SourceAirportId: secondFlightScheduleDetails.SourceAirportId,
+          AirlineName: "SanoshAirlines",
+        };
+        setConnectingFlightBookingModel(prevState => [...prevState, BookingModel]);
+      } else if (roundTripSecondflightType == "connectingFlights") {
+        let halfIndex = Math.floor(secondFlightPassengerDetails.length / 2);
+        let firstHalfPassengerDetails = secondFlightPassengerDetails.slice(
+          0,
+          halfIndex
+        );
+        let secondHalfPassengerDetails =
+          secondFlightPassengerDetails.slice(halfIndex);
+
+        let firstFlightBookingModel = {
+          Status: "Booked",
+          PassengerInfos: firstHalfPassengerDetails,
           UserId: userData.UserId,
           BookingType: "Onward",
           ScheduleId: secondFlightScheduleDetails.firstflight.ScheduleId,
@@ -200,7 +217,7 @@ const ConfirmBooking = () => {
 
         let secondFlightBookingModel = {
           Status: "Booked",
-          PassengerInfos: secondFlightPassengerDetails,
+          PassengerInfos: secondHalfPassengerDetails,
           UserId: userData.UserId,
           BookingType: "Onward",
           ScheduleId: secondFlightScheduleDetails.secondflight.ScheduleId,
@@ -212,14 +229,121 @@ const ConfirmBooking = () => {
             secondFlightScheduleDetails.secondflight.SourceAirportId,
           AirlineName: "SanoshAirlines",
         };
+        let combined = [firstFlightBookingModel, secondFlightBookingModel];
+        setConnectingFlightBookingModel(prevState => [...prevState, ...combined]);
+      }
+    } else if (flightType == "connectingFlights") {
+        let firstFlightBookingModel = {
+          Status: "Booked",
+          PassengerInfos: PassengerDetails[0],
+          UserId: userData.UserId,
+          BookingType: "Onward",
+          ScheduleId: FlightScheduleDetails.firstflight.ScheduleId,
+          DateTime: FlightScheduleDetails.firstflight.DateTime,
+          DestinationAirportId:
+            FlightScheduleDetails.firstflight.DestinationAirportId,
+          FlightName: FlightScheduleDetails.firstflight.FlightName,
+          SourceAirportId: FlightScheduleDetails.firstflight.SourceAirportId,
+          AirlineName: "SanoshAirlines",
+        };
+  
+        let secondFlightBookingModel = {
+          Status: "Booked",
+          PassengerInfos: PassengerDetails[1],
+          UserId: userData.UserId,
+          BookingType: "Onward",
+          ScheduleId: FlightScheduleDetails.secondflight.ScheduleId,
+          DateTime: FlightScheduleDetails.secondflight.DateTime,
+          DestinationAirportId:
+            FlightScheduleDetails.secondflight.DestinationAirportId,
+          FlightName: FlightScheduleDetails.secondflight.FlightName,
+          SourceAirportId: FlightScheduleDetails.secondflight.SourceAirportId,
+          AirlineName: "SanoshAirlines",
+        };
+  
+        console.log(...connectingFlightBookingModel);
+        console.log(connectingFlightBookingModel);
+  
         let data = [
           ...connectingFlightBookingModel,
           firstFlightBookingModel,
           secondFlightBookingModel,
         ];
-        console.log(data);
+        setConnectingFlightBookingModel(data);
+      } else if (flightType == "directflight") {
+        let BookingModel = [
+          {
+            Status: "Booked",
+            PassengerInfos: PassengerDetails,
+            UserId: userData.UserId,
+            BookingType: "Onward",
+            ScheduleId: FlightScheduleDetails.ScheduleId,
+            DateTime: FlightScheduleDetails.DateTime,
+            DestinationAirportId: FlightScheduleDetails.DestinationAirportId,
+            FlightName: FlightScheduleDetails.FlightName,
+            SourceAirportId: FlightScheduleDetails.SourceAirportId,
+            AirlineName: "SanoshAirlines",
+          },
+        ];
+        setConnectingFlightBookingModel(BookingModel);
+        }
 
-        MakeBooking(data)
+        setIsBookingReady(true);
+
+  };
+
+
+
+  const handleCancelBooking = () => {
+    if (bookingType == "roundtrip") {
+      console.log(firstFlightPassengerDetails);
+      console.log(secondFlightPassengerDetails);
+      console.log(firstFlightScheduleDetails, secondFlightScheduleDetails);
+      if (roundTripFirstflightType == "directflight") {
+        const firstseat = firstFlightPassengerDetails.map(
+          (passenger) => passenger.SeatNo
+        );
+        console.log(firstFlightScheduleDetails);
+        ChangeSeatStatus(
+          firstFlightScheduleDetails.ScheduleId,
+          "Available",
+          firstseat
+        )
+          .then((res) => {
+            console.log(res);
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      } else {
+        let halfIndex = Math.floor(secondFlightPassengerDetails.length / 2);
+        let firstHalfPassengerDetails = firstFlightPassengerDetails.slice(
+          0,
+          halfIndex
+        );
+        let secondHalfPassengerDetails =
+          firstFlightPassengerDetails.slice(halfIndex);
+
+          const firstseats = firstHalfPassengerDetails.map((passenger) => passenger.SeatNo);
+          const secondseats = secondHalfPassengerDetails.map((passenger) => passenger.SeatNo);
+
+        console.log(firstFlightScheduleDetails);
+        ChangeSeatStatus(
+          firstFlightScheduleDetails.firstflight.ScheduleId,
+          "Available",
+          firstseats
+        )
+          .then((res) => {
+            console.log(res);
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+        ChangeSeatStatus(
+          firstFlightScheduleDetails.secondflight.ScheduleId,
+          "Available",
+          secondseats
+        )
           .then((res) => {
             console.log(res);
           })
@@ -227,185 +351,163 @@ const ConfirmBooking = () => {
             console.error(err);
           });
       }
+      if (roundTripSecondflightType == "directflight") {
+        const secondseat = secondFlightPassengerDetails.map(
+          (passenger) => passenger.SeatNo
+        );
+        console.log(secondFlightScheduleDetails);
+
+        ChangeSeatStatus(
+          secondFlightScheduleDetails.ScheduleId,
+          "Available",
+          secondseat
+        )
+          .then((res) => {
+            console.log(res);
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      } else {
+        let halfIndex = Math.floor(secondFlightPassengerDetails.length / 2);
+        let firstHalfPassengerDetails = firstFlightPassengerDetails.slice(
+          0,
+          halfIndex
+        );
+        let secondHalfPassengerDetails =
+          firstFlightPassengerDetails.slice(halfIndex);
+          const firstseats = firstHalfPassengerDetails.map((passenger) => passenger.SeatNo);
+          const secondseats = secondHalfPassengerDetails.map((passenger) => passenger.SeatNo);
+
+
+        console.log(secondFlightScheduleDetails);
+        ChangeSeatStatus(
+          secondFlightScheduleDetails.firstflight.ScheduleId,
+          "Available",
+          firstseats
+        )
+          .then((res) => {
+            console.log(res);
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+        ChangeSeatStatus(
+          secondFlightScheduleDetails.secondflight.ScheduleId,
+          "Available",
+          secondseats
+        )
+          .then((res) => {
+            console.log(res);
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+    } else {
+      const seats = PassengerDetails.map((passenger) => passenger.SeatNo);
+      console.log(seats);
+      ChangeSeatStatus(FlightScheduleDetails.ScheduleId, "Available", seats)
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
+  };
 
-  if (flightType == "connectingFlights") {
-    let firstFlightBookingModel = {
-      Status: "Booked",
-      PassengerInfos: PassengerDetails[0],
-      UserId: userData.UserId,
-      BookingType: "Onward",
-      ScheduleId: FlightScheduleDetails.firstflight.ScheduleId,
-      DateTime: FlightScheduleDetails.firstflight.DateTime,
-      DestinationAirportId:
-        FlightScheduleDetails.firstflight.DestinationAirportId,
-      FlightName: FlightScheduleDetails.firstflight.FlightName,
-      SourceAirportId: FlightScheduleDetails.firstflight.SourceAirportId,
-      AirlineName: "SanoshAirlines",
-    };
+  return (
+    <div className="m-5">
+      <ul className="divide-y divide-gray-300">
+        {flightType === "directflight" &&
+          PassengerDetails.map((Passenger) => (
+            <li
+              key={Passenger.SeatNo}
+              className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+            >
+              <div className="flex flex-col space-y-1">
+                <p className="text-lg font-semibold">{Passenger.Name}</p>
+                <p className="text-sm text-gray-600">{Passenger.SeatNo}</p>
+              </div>
+              <div className="flex flex-col text-right">
+                <p className="text-sm">
+                  {FlightScheduleDetails.FlightName} -{" "}
+                  {FlightScheduleDetails.FlightDuration}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {FlightScheduleDetails.SourceAirportId} -{" "}
+                  {FlightScheduleDetails.DestinationAirportId} -{" "}
+                  {FlightScheduleDetails.DateTime}
+                </p>
+              </div>
+            </li>
+          ))}
 
-    let secondFlightBookingModel = {
-      Status: "Booked",
-      PassengerInfos: PassengerDetails[1],
-      UserId: userData.UserId,
-      BookingType: "Onward",
-      ScheduleId: FlightScheduleDetails.secondflight.ScheduleId,
-      DateTime: FlightScheduleDetails.secondflight.DateTime,
-      DestinationAirportId:
-        FlightScheduleDetails.secondflight.DestinationAirportId,
-      FlightName: FlightScheduleDetails.secondflight.FlightName,
-      SourceAirportId: FlightScheduleDetails.secondflight.SourceAirportId,
-      AirlineName: "SanoshAirlines",
-    };
-    let data = [
-      ...connectingFlightBookingModel,
-      firstFlightBookingModel,
-      secondFlightBookingModel,
-    ];
-    console.log(data);
+        {flightType === "connectingFlights" &&
+          PassengerDetails[0].map((Passenger) => (
+            <li
+              key={Passenger.SeatNo}
+              className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+            >
+              <div className="flex flex-col space-y-1">
+                <p className="text-lg font-semibold">{Passenger.Name}</p>
+                <p className="text-sm text-gray-600">{Passenger.SeatNo}</p>
+              </div>
+              <div className="flex flex-col text-right">
+                <p className="text-sm">
+                  {FlightScheduleDetails.firstflight.FlightName} -{" "}
+                  {FlightScheduleDetails.firstflight.FlightDuration}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {FlightScheduleDetails.firstflight.SourceAirportId} -{" "}
+                  {FlightScheduleDetails.firstflight.DestinationAirportId} -{" "}
+                  {FlightScheduleDetails.firstflight.DateTime}
+                </p>
+              </div>
+            </li>
+          ))}
 
-    MakeBooking(data)
-      .then((res) => {
-        console.log(res);
-        sessionStorage.clear("");
-        toast.success("Tickets Booked!");
-        navigate("/BookingHistory");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  } else if (flightType == "directflight") {
-    let BookingModel = [
-      {
-        Status: "Booked",
-        PassengerInfos: PassengerDetails,
-        UserId: userData.UserId,
-        BookingType: "Onward",
-        ScheduleId: FlightScheduleDetails.ScheduleId,
-        DateTime: FlightScheduleDetails.DateTime,
-        DestinationAirportId: FlightScheduleDetails.DestinationAirportId,
-        FlightName: FlightScheduleDetails.FlightName,
-        SourceAirportId: FlightScheduleDetails.SourceAirportId,
-        AirlineName: "SanoshAirlines",
-      },
-    ];
-    MakeBooking(BookingModel)
-      .then((res) => {
-        console.log(res);
-        sessionStorage.clear("");
-        toast.success("Tickets Booked!");
-        navigate("/BookingHistory");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }
-};
-
-
-const handleCancelBooking = () => {
-  const seats = PassengerDetails.map((passenger) => passenger.SeatNo);
-  console.log(seats);
-  ChangeSeatStatus(FlightScheduleDetails.ScheduleId, "Available", seats)
-    .then((res) => {
-      console.log(res);
-    })
-    .catch((err) => {
-      console.error(err);
-    });
-};
-
-return (
-  <div className="m-5">
-    <ul className="divide-y divide-gray-300">
-      {flightType === "directflight" &&
-        PassengerDetails.map((Passenger) => (
-          <li
-            key={Passenger.SeatNo}
-            className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
-          >
-            <div className="flex flex-col space-y-1">
-              <p className="text-lg font-semibold">{Passenger.Name}</p>
-              <p className="text-sm text-gray-600">{Passenger.SeatNo}</p>
-            </div>
-            <div className="flex flex-col text-right">
-              <p className="text-sm">
-                {FlightScheduleDetails.FlightName} -{" "}
-                {FlightScheduleDetails.FlightDuration}
-              </p>
-              <p className="text-xs text-gray-500">
-                {FlightScheduleDetails.SourceAirportId} -{" "}
-                {FlightScheduleDetails.DestinationAirportId} -{" "}
-                {FlightScheduleDetails.DateTime}
-              </p>
-            </div>
-          </li>
-        ))}
-
-      {flightType === "connectingFlights" &&
-        PassengerDetails[0].map((Passenger) => (
-          <li
-            key={Passenger.SeatNo}
-            className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
-          >
-            <div className="flex flex-col space-y-1">
-              <p className="text-lg font-semibold">{Passenger.Name}</p>
-              <p className="text-sm text-gray-600">{Passenger.SeatNo}</p>
-            </div>
-            <div className="flex flex-col text-right">
-              <p className="text-sm">
-                {FlightScheduleDetails.firstflight.FlightName} -{" "}
-                {FlightScheduleDetails.firstflight.FlightDuration}
-              </p>
-              <p className="text-xs text-gray-500">
-                {FlightScheduleDetails.firstflight.SourceAirportId} -{" "}
-                {FlightScheduleDetails.firstflight.DestinationAirportId} -{" "}
-                {FlightScheduleDetails.firstflight.DateTime}
-              </p>
-            </div>
-          </li>
-        ))}
-
-      {flightType === "connectingFlights" &&
-        PassengerDetails[1].map((Passenger) => (
-          <li
-            key={Passenger.SeatNo}
-            className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
-          >
-            <div className="flex flex-col space-y-1">
-              <p className="text-lg font-semibold">{Passenger.Name}</p>
-              <p className="text-sm text-gray-600">{Passenger.SeatNo}</p>
-            </div>
-            <div className="flex flex-col text-right">
-              <p className="text-sm">
-                {FlightScheduleDetails.secondflight.FlightName} -{" "}
-                {FlightScheduleDetails.secondflight.FlightDuration}
-              </p>
-              <p className="text-xs text-gray-500">
-                {FlightScheduleDetails.secondflight.SourceAirportId} -{" "}
-                {FlightScheduleDetails.secondflight.DestinationAirportId} -{" "}
-                {FlightScheduleDetails.secondflight.DateTime}
-              </p>
-            </div>
-          </li>
-        ))}
-    </ul>
-    <h1 className="text-2xl font-bold mt-6 mb-4">Confirm Booking</h1>
-    <div className="flex space-x-4">
-      <button
-        className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-md"
-        onClick={() => handleConfirmBooking()}
-      >
-        Yes
-      </button>
-      <button
-        className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-md"
-        onClick={() => handleCancelBooking()}
-      >
-        No
-      </button>
+        {flightType === "connectingFlights" &&
+          PassengerDetails[1].map((Passenger) => (
+            <li
+              key={Passenger.SeatNo}
+              className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+            >
+              <div className="flex flex-col space-y-1">
+                <p className="text-lg font-semibold">{Passenger.Name}</p>
+                <p className="text-sm text-gray-600">{Passenger.SeatNo}</p>
+              </div>
+              <div className="flex flex-col text-right">
+                <p className="text-sm">
+                  {FlightScheduleDetails.secondflight.FlightName} -{" "}
+                  {FlightScheduleDetails.secondflight.FlightDuration}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {FlightScheduleDetails.secondflight.SourceAirportId} -{" "}
+                  {FlightScheduleDetails.secondflight.DestinationAirportId} -{" "}
+                  {FlightScheduleDetails.secondflight.DateTime}
+                </p>
+              </div>
+            </li>
+          ))}
+      </ul>
+      <h1 className="text-2xl font-bold mt-6 mb-4">Confirm Booking</h1>
+      <div className="flex space-x-4">
+        <button
+          className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-md"
+          onClick={() => handleConfirmBooking()}
+        >
+          Yes
+        </button>
+        <button
+          className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-md"
+          onClick={() => handleCancelBooking()}
+        >
+          No
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
 };
 export default ConfirmBooking;

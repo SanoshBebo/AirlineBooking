@@ -1,17 +1,22 @@
 export const airlinesapi = {
-    abhiramairline: {
+    AbhiramAirlines: {
       name: 'Abhiram Airline',
       apiPath: 'https://localhost:44329/api/',
     },
-    SanoshAirlines: {
-      name: 'SanoshAirlines',
+    KumarAirlines: {
+      name: 'Kumar Airlines',
       apiPath: 'https://localhost:44329/api/',
     },
+    ShamaAirlines: {
+      name: 'Shama Airlines',
+      apiPath: 'https://localhost:44329/api/',
+    },
+    
   };
 
 
 export const SanoshAirlineDetails = {
-    sanoshairline: {
+    SanoshAirlines: {
         name: 'SanoshAirlines',
         apiPath: 'https://localhost:44329/api/',
     },

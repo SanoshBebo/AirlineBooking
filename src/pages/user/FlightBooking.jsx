@@ -22,10 +22,15 @@ const FlightBooking = () => {
     []
   );
 
-  const [selectedSeatsForPassengers, setSelectedSeatsForPassengers] = useState([]);
-  const [connectingFlightPassengerScheduleDetails, setConnectingFlightPassengerScheduleDetails] = useState([]);
+  const [selectedSeatsForPassengers, setSelectedSeatsForPassengers] = useState(
+    []
+  );
+  const [
+    connectingFlightPassengerScheduleDetails,
+    setConnectingFlightPassengerScheduleDetails,
+  ] = useState([]);
 
-const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [
     connectingFlightFirstScheduleSeats,
@@ -58,7 +63,6 @@ const navigate = useNavigate()
   const [connectingFlightFirstUpdateFlag, setConnectingFlightFirstUpdateFlag] =
     useState(false);
 
-
   const [
     connectingFlightSecondUpdateFlag,
     setConnectingFlightSecondUpdateFlag,
@@ -70,12 +74,6 @@ const navigate = useNavigate()
   const [isSecondConnectedFlight, setIsSecondConnectedFlight] = useState(false);
 
   useEffect(() => {
-   getFlightDetails();
-  }, [mode,getUserDetails,refresh]);
-
-
-  const getFlightDetails = () =>{
-
     if (mode == "singleTrip") {
       const directFlightDetails = sessionStorage.getItem("directflight");
       if (directFlightDetails) {
@@ -124,8 +122,8 @@ const navigate = useNavigate()
           });
       }
     }
-  }
-  
+  }, [mode, getUserDetails, refresh]);
+
   useEffect(() => {
     arrangeSeats(
       singleFlightScheduleSeats,
@@ -159,8 +157,8 @@ const navigate = useNavigate()
   const arrangeSeats = (seats, setSeatRows, selectedSeats) => {
     const seatMap = {};
     const rows = [];
-    const seatOrder = ['A', 'B', 'C', 'D', 'E', 'F'];
-  
+    const seatOrder = ["A", "B", "C", "D", "E", "F"];
+
     seats.forEach((seat) => {
       const row = seat.SeatNumber.charAt(0);
       const col = parseInt(seat.SeatNumber.substring(1));
@@ -169,64 +167,72 @@ const navigate = useNavigate()
       }
       seatMap[row][col] = seat;
     });
-  
+
     for (let i = 1; i <= 17; i++) {
       const formattedRow = seatOrder.map((row, index) => {
         const seat = seatMap[row] ? seatMap[row][i] : null;
         const isFirstGroup = index < 3; // Rows A, B, C
         const isSecondGroup = index >= 3; // Rows D, E, F
-  
+
         return (
           <div
             key={seat ? seat.SeatNumber : `${row}-${i}`}
-            className={`seat p-2 m-2 border rounded-md 
-              ${seat && selectedSeats.includes(seat.SeatNumber)
-                ? 'bg-green-300 cursor-pointer'
-                : seat && seat.Status === 'Available'
-                ? 'bg-white cursor-pointer hover:bg-gray-100'
-                : seat
-                ? 'bg-gray-200 cursor-not-allowed opacity-50'
-                : 'hidden'
-              }`}
+            className={`seat p-4 m-2 border rounded-md  
+      ${
+        seat && selectedSeats.includes(seat.SeatNumber)
+          ? "bg-green-300 cursor-pointer"
+          : seat && seat.Status === "Available"
+          ? "bg-slate-100 cursor-pointer hover:bg-gray-100"
+          : seat
+          ? "bg-gray-200 cursor-not-allowed opacity-50"
+          : "hidden"
+      }`}
             onClick={() => seat && selectSeat(seat, mode)}
           >
-            {seat && (seat.Status === 'Available' || seat.Status === 'Booked') ? seat.SeatNumber : ""}
+            {seat && (seat.Status === "Available" || seat.Status === "Booked")
+              ? seat.SeatNumber
+              : ""}
           </div>
         );
-        
       });
-  
+
       rows.push(
         <div key={i} className="flex seat-row">
           {formattedRow} {/* Display all seats in a row */}
         </div>
       );
     }
-  
+
     setSeatRows(rows);
   };
 
   const selectSeat = (seat, mode) => {
-    if (mode === 'singleTrip') {
+    if (mode === "singleTrip") {
       setSingleFlightSelectedSeats((prevSelectedSeats) => {
         if (prevSelectedSeats.includes(seat.SeatNumber)) {
           return prevSelectedSeats.filter(
             (selectedSeat) => selectedSeat !== seat.SeatNumber
           );
-        } else if (singleFlightSelectedSeats.length < userDetails.length && seat.Status === 'Available') {
+        } else if (
+          singleFlightSelectedSeats.length < userDetails.length &&
+          seat.Status === "Available"
+        ) {
           return [...prevSelectedSeats, seat.SeatNumber];
         } else {
           return prevSelectedSeats;
         }
       });
-    } else if (mode === 'connectingTrip') {
+    } else if (mode === "connectingTrip") {
       if (isFirstConnectedFlight) {
         setConnectingFlightFirstSelectedSeats((prevSelectedSeats) => {
           if (prevSelectedSeats.includes(seat.SeatNumber)) {
             return prevSelectedSeats.filter(
               (selectedSeat) => selectedSeat !== seat.SeatNumber
             );
-          } else if (connectingFlightFirstSelectedSeats.length < userDetails.length && seat.Status === 'Available') {
+          } else if (
+            connectingFlightFirstSelectedSeats.length < userDetails.length &&
+            seat.Status === "Available"
+          ) {
             return [...prevSelectedSeats, seat.SeatNumber];
           } else {
             return prevSelectedSeats;
@@ -238,7 +244,10 @@ const navigate = useNavigate()
             return prevSelectedSeats.filter(
               (selectedSeat) => selectedSeat !== seat.SeatNumber
             );
-          } else if (connectingFlightSecondSelectedSeats.length < userDetails.length && seat.Status === 'Available') {
+          } else if (
+            connectingFlightSecondSelectedSeats.length < userDetails.length &&
+            seat.Status === "Available"
+          ) {
             return [...prevSelectedSeats, seat.SeatNumber];
           } else {
             return prevSelectedSeats;
@@ -247,7 +256,7 @@ const navigate = useNavigate()
       }
     }
 
-    if (mode === 'singleTrip' || mode === 'connectingTrip') {
+    if (mode === "singleTrip" || mode === "connectingTrip") {
       if (userDetails.length > 0) {
         let newSelectedSeatsForPassengers = [];
 
@@ -255,16 +264,18 @@ const navigate = useNavigate()
           if (selectedSeatsForPassengers[index] === undefined) {
             newSelectedSeatsForPassengers.push({
               ...passenger,
-              seatno: '',
+              seatno: "",
             });
           } else {
-            newSelectedSeatsForPassengers.push(selectedSeatsForPassengers[index]);
+            newSelectedSeatsForPassengers.push(
+              selectedSeatsForPassengers[index]
+            );
           }
         });
 
         newSelectedSeatsForPassengers = newSelectedSeatsForPassengers.map(
           (passenger, index) => {
-            if (index === userDetails.length - 1 && passenger.seatno === '') {
+            if (index === userDetails.length - 1 && passenger.seatno === "") {
               return { ...passenger, seatno: seat.SeatNumber };
             }
             return passenger;
@@ -275,36 +286,38 @@ const navigate = useNavigate()
       }
     }
   };
+
+
   const handlePassengerSeatSelection = (index, selectedSeat) => {
     const updatedSelections = [...passengerSeatSelections];
     updatedSelections[index] = selectedSeat;
     setPassengerSeatSelections(updatedSelections);
   };
 
-
   const bookFlight = (scheduleid, status, seatList) => {
-
-    if(mode == "singleTrip"){
+    if (mode == "singleTrip") {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
         ...passenger,
-        SeatNo: passengerSeatSelections[index] || '',
+        SeatNo: passengerSeatSelections[index] || "",
       }));
-      sessionStorage.setItem("SingleFlightBookingInfo",JSON.stringify(updatedPassengerDetails))
+      sessionStorage.setItem(
+        "SingleFlightBookingInfo",
+        JSON.stringify(updatedPassengerDetails)
+      );
       navigate("/FlightBooking/ConfirmBooking");
-    }else if(mode == "connectingTrip" && isFirstConnectedFlight){
+    } else if (mode == "connectingTrip" && isFirstConnectedFlight) {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
         ...passenger,
-        SeatNo: passengerSeatSelections[index] || '',
+        SeatNo: passengerSeatSelections[index] || "",
       }));
-      const detail = [updatedPassengerDetails]
+      const detail = [updatedPassengerDetails];
       setConnectingFlightPassengerScheduleDetails(detail);
       setRefresh(!refresh);
       console.log(connectingFlightPassengerScheduleDetails);
-    }
-    else if(mode == "connectingTrip" && isSecondConnectedFlight){
+    } else if (mode == "connectingTrip" && isSecondConnectedFlight) {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
         ...passenger,
-        SeatNo: passengerSeatSelections[index] || '',
+        SeatNo: passengerSeatSelections[index] || "",
       }));
       const combinedPassengerDetails = [
         ...connectingFlightPassengerScheduleDetails,
@@ -323,26 +336,24 @@ const navigate = useNavigate()
     ChangeSeatStatus(scheduleid, status, seatList)
       .then((res) => {
         if (mode == "singleTrip") {
-          setSingleFlightSelectedSeats([])
-          setRefresh(!refresh)
-        }
-
-        else if (mode == "connectingTrip" && isSecondConnectedFlight) {
-          setIsSecondConnectedFlight(false);
-          setRefresh(!refresh)
-        }
-
-        else if (mode == "connectingTrip" && isFirstConnectedFlight) {
+          setSingleFlightSelectedSeats([]);
+          setRefresh(!refresh);
+        } else if (mode == "connectingTrip" && isSecondConnectedFlight) {
+          setConnectingFlightSecondSelectedSeats([])
+          setIsSecondConnectedFlight(!isSecondConnectedFlight);
+          setRefresh(!refresh);
+        } else if (mode == "connectingTrip" && isFirstConnectedFlight) {
+          setConnectingFlightFirstSelectedSeats([]);
           setIsSecondConnectedFlight(!isSecondConnectedFlight);
           setIsFirstConnectedFlight(!isFirstConnectedFlight);
           setRefresh(!refresh);
         }
-
+        setSelectedSeatsForPassengers([]);
       })
       .catch((err) => {
         console.error(err);
       });
-
+      
   };
 
   return (
@@ -357,79 +368,96 @@ const navigate = useNavigate()
           }}
         />
       )}
-      {getUserDetails && (<div className="flex justify-center items-center">
-      {mode === 'singleTrip' && (
-        <SeatDisplay
-          seatlist={singleFlightSeatRows}
-          book={() =>
-            bookFlight(firstFlightScheduleId, 'Booked', singleFlightSelectedSeats)
-          }
-        />
-      )}
-      {mode === 'connectingTrip' && isFirstConnectedFlight && (
-        <div className="text-center">
-          <h1>First Flight Connected Trip</h1>
-          <SeatDisplay
-            seatlist={connectingFlightFirstSeatRows}
-            book={() =>
-              bookFlight(
-                firstConnectedFlightScheduleId,
-                'Booked',
-                connectingFlightFirstSelectedSeats
-              )
-            }
-          />
+      <div className="flex flex-row p-10">
+      <div className="w-3/4">
+
+      {getUserDetails && (
+        <div className="flex justify-center items-center">
+          {mode === "singleTrip" && (
+            <SeatDisplay
+              seatlist={singleFlightSeatRows}
+              book={() =>
+                bookFlight(
+                  firstFlightScheduleId,
+                  "Booked",
+                  singleFlightSelectedSeats
+                )
+              }
+            />
+          )}
+          {mode === "connectingTrip" && isFirstConnectedFlight && (
+            <div className="text-center">
+              <h1>First Flight Connected Trip</h1>
+              <SeatDisplay
+                seatlist={connectingFlightFirstSeatRows}
+                book={() =>
+                  bookFlight(
+                    firstConnectedFlightScheduleId,
+                    "Booked",
+                    connectingFlightFirstSelectedSeats
+                  )
+                }
+              />
+            </div>
+          )}
+          {mode === "connectingTrip" && isSecondConnectedFlight && (
+            <div className=" flex flex-col items-start justify-center">
+              <h1 className="text-black font-bold text-xl p-5">Second Flight</h1>
+              <SeatDisplay
+                seatlist={connectingFlightSecondSeatRows}
+                book={() =>
+                  bookFlight(
+                    secondConnectedFlightScheduleId,
+                    "Booked",
+                    connectingFlightSecondSelectedSeats
+                  )
+                }
+              />
+            </div>
+          )}
         </div>
       )}
-      {mode === 'connectingTrip' && isSecondConnectedFlight && (
-        <div className="text-center">
-          <h1>Second Flight Connected Trip</h1>
-          <SeatDisplay
-            seatlist={connectingFlightSecondSeatRows}
-            book={() =>
-              bookFlight(
-                secondConnectedFlightScheduleId,
-                'Booked',
-                connectingFlightSecondSelectedSeats
-              )
-            }
-          />
-        </div>
-      )}
-    </div>)}
-       {getUserDetails &&
-  userDetails.map((passenger, index) => (
-    <div key={index} className="mb-4">
-      <p className="font-semibold">{passenger.Name}'s Seat:</p>
-      <select
-        value={passengerSeatSelections[index] || ''}
-        onChange={(e) => handlePassengerSeatSelection(index, e.target.value)}
-        className="block w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-      >
-        <option value="">Select Seat</option>
-        {mode === 'singleTrip' &&
-          singleFlightSelectedSeats.map((seat, seatIndex) => (
-            <option key={seatIndex} value={seat}>
-              {seat}
-            </option>
-          ))}
-        {mode === 'connectingTrip' && isFirstConnectedFlight && connectingFlightFirstSelectedSeats.map((seat, seatIndex) => (
-            <option key={seatIndex} value={seat}>
-              {seat}
-            </option>
-          ))}
-        {mode === 'connectingTrip' && isSecondConnectedFlight && connectingFlightSecondSelectedSeats.map((seat, seatIndex) => (
-            <option key={seatIndex} value={seat}>
-              {seat}
-            </option>
-          ))}
-      </select>
-    </div>
-  ))}
+      </div>
+
+      <div className="w-1/2 mx-auto"> {/* Set width to 50% and center the content */}
+  {getUserDetails &&
+    userDetails.map((passenger, index) => (
+      <div key={index} className="mb-4 p-5">
+        <p className="font-semibold">{passenger.Name}'s Seat:</p>
+        <select
+          value={passengerSeatSelections[index] || ""}
+          onChange={(e) => handlePassengerSeatSelection(index, e.target.value)}
+          className="block w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+        >
+          <option value="">Select Seat</option>
+          {mode === "singleTrip" &&
+            singleFlightSelectedSeats.map((seat, seatIndex) => (
+              <option key={seatIndex} value={seat}>
+                {seat}
+              </option>
+            ))}
+          {mode === "connectingTrip" &&
+            isFirstConnectedFlight &&
+            connectingFlightFirstSelectedSeats.map((seat, seatIndex) => (
+              <option key={seatIndex} value={seat}>
+                {seat}
+              </option>
+            ))}
+          {mode === "connectingTrip" &&
+            isSecondConnectedFlight &&
+            connectingFlightSecondSelectedSeats.map((seat, seatIndex) => (
+              <option key={seatIndex} value={seat}>
+                {seat}
+              </option>
+            ))}
+        </select>
+      </div>
+    ))}
+</div>
+</div>
       <ToastContainer />
     </>
   );
-  
 };
 
 export default FlightBooking;

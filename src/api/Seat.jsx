@@ -18,7 +18,7 @@ export const ChangeSeatStatus = async (scheduleId, status, seatNumbers) => {
       JSON.stringify(seatNumbers),
       {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json", 
         },
       }
     );

@@ -143,17 +143,18 @@ const FlightSchedulesComponent = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-100">
-      <h1 className="text-3xl font-bold mb-6">Flight Schedules</h1>
+    <div className="p-8 bg-[#990011]">
+      <h1 className="text-3xl font-bold mb-6 text-[#FCF6F5] ">Flight Schedules</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Add New Schedule</h2>
+        <div className="bg-[#FCF6F5] flex-col flex rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 text-[#990011]">Add New Schedule</h2>
           <FormControl sx={{ m: 1, minWidth: 200 }}>
-            <InputLabel id="demo-simple-select-autowidth-label">
+            <InputLabel id="demo-simple-select-autowidth-label" >
               Flight
             </InputLabel>
             <Select
+             className="bg-white"
               labelId="demo-simple-select-autowidth-label"
               id="demo-simple-select-autowidth"
               value={newSchedule.flightName}
@@ -161,6 +162,7 @@ const FlightSchedulesComponent = () => {
               onChange={handleChange}
               autoWidth
               label="Flight"
+              
             >
               <MenuItem value="">
                 <em>None</em>
@@ -173,10 +175,11 @@ const FlightSchedulesComponent = () => {
             </Select>
           </FormControl>
           <FormControl sx={{ m: 1, minWidth: 200 }}>
-            <InputLabel id="demo-simple-select-autowidth-label">
+            <InputLabel id="demo-simple-select-autowidth-label"  className="bg-white">
               Source Airport
             </InputLabel>
             <Select
+             className="bg-white"
               labelId="demo-simple-select-autowidth-label"
               id="demo-simple-select-autowidth"
               value={newSchedule.SourceAirportId}
@@ -196,10 +199,11 @@ const FlightSchedulesComponent = () => {
             </Select>
           </FormControl>
           <FormControl sx={{ m: 1, minWidth: 200 }}>
-            <InputLabel id="demo-simple-select-autowidth-label">
+            <InputLabel  className="bg-white" id="demo-simple-select-autowidth-label">
               Destination Airport
             </InputLabel>
             <Select
+             className="bg-white"
               labelId="demo-simple-select-autowidth-label"
               id="demo-simple-select-autowidth"
               value={newSchedule.DestinationAirportId}
@@ -223,6 +227,7 @@ const FlightSchedulesComponent = () => {
               Months
             </InputLabel>
             <Select
+            className="bg-white"
               labelId="demo-simple-select-label"
               id="demo-simple-select"
               value={months}
@@ -238,59 +243,73 @@ const FlightSchedulesComponent = () => {
               ))}
             </Select>
           </FormControl>
+          <FormControl sx={{ m: 1, minWidth: 200 }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DateTimePicker
-              label="Departure Date and Time"
-              value={newSchedule.dateTime}
-              onChange={(newValue) => {
-                const formattedDateTime = newValue.format(
-                  "YYYY-MM-DDTHH:mm:ss"
+            className="bg-white"
+            label="Departure Date and Time"
+            value={newSchedule.dateTime}
+            onChange={(newValue) => {
+              const formattedDateTime = newValue.format(
+                "YYYY-MM-DDTHH:mm:ss"
                 );
                 console.log(formattedDateTime);
                 setNewSchedule({ ...newSchedule, dateTime: formattedDateTime });
               }}
               renderInput={(params) => <TextField {...params} />}
-            />
+              />
           </LocalizationProvider>
-
+          </FormControl>
+          <FormControl sx={{ m: 1, minWidth: 200 }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <TimePicker
-              label="Flight Duration"
-              value={newSchedule.flightDuration} // Use the same dateTime state for TimePicker
-              onChange={(newValue) => handleFlightDurationChange(newValue)}
-              renderInput={(params) => <TextField {...params} />}
-              ampm={false} // Use 24-hour format
+            className="bg-white"
+            label="Flight Duration"
+            value={newSchedule.flightDuration} // Use the same dateTime state for TimePicker
+            onChange={(newValue) => handleFlightDurationChange(newValue)}
+            renderInput={(params) => <TextField {...params} />}
+            ampm={false} // Use 24-hour format
             />
           </LocalizationProvider>
+          </FormControl>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+            className="bg-[#990011] hover:bg-[#a8192a] text-white font-bold py-2 px-4 rounded mt-4"
             onClick={() => handleAddSchedule(newSchedule, months)}
-          >
+            >
             Add Schedule
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-[#FCF6F5] flex-col flex rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Filter Options</h2>
+          <FormControl sx={{ m: 1, minWidth: 200 }}>
           <TextField
-            label="Filter by Flight Name"
-            name="flightName"
-            value={filters.flightName}
-            onChange={handleFilterChange}
-          />
+           className="bg-white"
+           label="Filter by Flight Name"
+           name="flightName"
+           value={filters.flightName}
+           onChange={handleFilterChange}
+           />
+           </FormControl>
+           <FormControl sx={{ m: 1, minWidth: 200 }}>
           <TextField
-            label="Filter by Date"
-            type="date"
-            name="date"
-            value={filters.date}
-            onChange={handleFilterChange}
-            InputLabelProps={{ shrink: true }}
-          />
+           className="bg-white"
+           
+           label="Filter by Date"
+           type="date"
+           name="date"
+           value={filters.date}
+           onChange={handleFilterChange}
+           InputLabelProps={{ shrink: true }}
+           />
+           </FormControl>
           <FormControl sx={{ m: 1, minWidth: 200 }}>
           <InputLabel id="demo-simple-select-label">
           Filter by Source
             </InputLabel>
           <Select
+           className="bg-white"
+
             value={filters.source}
             onChange={handleFilterChange}
             name="source"
@@ -309,6 +328,8 @@ const FlightSchedulesComponent = () => {
           Filter by Destination
             </InputLabel>
           <Select
+           className="bg-white"
+
             value={filters.destination}
             onChange={handleFilterChange}
             name="destination"
@@ -322,8 +343,12 @@ const FlightSchedulesComponent = () => {
             ))}
           </Select>
           </FormControl>
-          <Button onClick={applyFilters}>Apply Filters</Button>
-          <Button onClick={resetFilters}>Reset Filters</Button>
+          <button  onClick={applyFilters}
+            className="bg-[#990011] hover:bg-[#a8192a] text-white font-bold py-2 px-4 rounded mt-4"
+            >Apply Filters</button>
+          <button onClick={resetFilters}
+            className="bg-[#990011] hover:bg-[#a8192a] text-white font-bold py-2 px-4 rounded mt-4"
+            >Reset Filters</button>
         </div>
       </div>
 

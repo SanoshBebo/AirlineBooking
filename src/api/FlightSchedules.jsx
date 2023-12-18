@@ -66,7 +66,7 @@ export const AddScheduleForMonths = async (schedule,months) => {
 export const DeleteSchedules = async (idsToDelete) => {
   console.log(idsToDelete)
     try {
-        const response = await axios.delete('api/FlightSchedules', {
+        const response = await axios.patch('api/FlightSchedules', {
           data: idsToDelete,
           headers: {
             'Content-Type': 'application/json', 
@@ -81,7 +81,7 @@ export const DeleteSchedules = async (idsToDelete) => {
 
   export const UpdateFlightSchedule = async (id,flightSchedule) => {
     try {
-      const response = await axios.put(`api/FlightSchedules/${id}`, JSON.stringify(flightSchedule), {
+      const response = await axios.patch(`api/FlightSchedules/${id}`, JSON.stringify(flightSchedule), {
         headers: {
           'Content-Type': 'application/json',
         },

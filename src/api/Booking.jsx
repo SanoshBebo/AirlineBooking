@@ -2,6 +2,7 @@ import axios from "axios";
 import axiosInstance from "./axiosInstance";
 
 export const GetBookingsOfUser = async(userid) => {
+  console.log(userid)
     try{
         const response = await axiosInstance.get(`api/Bookings/userbookings/${userid}`);
         console.log(response);

@@ -4,6 +4,7 @@ import { ChangeSeatStatus, GetSeatsForSchedule } from "../../api/Seat";
 import SeatDisplay from "../../components/SeatDisplay";
 import GetPassengerInfo from "../../components/GetPassengerInfo";
 import { ToastContainer, toast } from "react-toastify";
+import { SanoshAirlineDetails } from "../../components/Constants";
 
 const FlightBooking = () => {
   const { mode } = useParams();
@@ -36,6 +37,11 @@ const FlightBooking = () => {
     connectingFlightFirstScheduleSeats,
     setConnectingFlightFirstScheduleSeats,
   ] = useState([]);
+  const [
+    connectingFlightDetails,
+    setConnectingFlightDetails,
+  ] = useState([]);
+ 
   const [
     connectingFlightSecondScheduleSeats,
     setConnectingFlightSecondScheduleSeats,
@@ -73,14 +79,29 @@ const FlightBooking = () => {
   const [isFirstConnectedFlight, setIsFirstConnectedFlight] = useState(true);
   const [isSecondConnectedFlight, setIsSecondConnectedFlight] = useState(false);
 
+
+  function capitalizeKeys(obj) {
+    const newObj = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+        newObj[capitalizedKey] = obj[key];
+      }
+    }
+    return newObj;
+  }
+
+
+
   useEffect(() => {
     if (mode == "singleTrip") {
       const directFlightDetails = sessionStorage.getItem("directflight");
       if (directFlightDetails) {
         const singleFlight = JSON.parse(directFlightDetails);
         setfirstFlightScheduleId(singleFlight.ScheduleId);
-        GetSeatsForSchedule(singleFlight.ScheduleId)
-          .then((res) => {
+        GetSeatsForSchedule(SanoshAirlineDetails.SanoshAirlines.apiPath,singleFlight.ScheduleId)
+        .then((res) => {
+            console.log(res)
             setSingleFlightScheduleSeats(res);
           })
           .catch((error) => {
@@ -92,29 +113,37 @@ const FlightBooking = () => {
         sessionStorage.getItem("connectingFlights");
       if (connectingFlightDetails) {
         const connectingFlights = JSON.parse(connectingFlightDetails);
+        setConnectingFlightDetails(connectingFlights);
         setFirstConnectedFlightScheduleId(
           connectingFlights.firstflight.ScheduleId
         );
         setSecondConnectedFlightScheduleId(
           connectingFlights.secondflight.ScheduleId
         );
-
-        GetSeatsForSchedule(connectingFlights.firstflight.ScheduleId)
+          console.log(connectingFlights.firstflight.apiPath)
+          console.log(connectingFlights.secondflight.apiPath)
+        GetSeatsForSchedule(connectingFlights.firstflight.apiPath,connectingFlights.firstflight.ScheduleId)
           .then((res) => {
-            setConnectingFlightFirstScheduleSeats(res);
+            console.log(res)
+            const seats = res.map((seat) => capitalizeKeys(seat));
+            console.log(seats)
+            setConnectingFlightFirstScheduleSeats(seats);
           })
           .catch((error) => {
             console.error(
               "Error fetching seats for first connecting flight:",
               error
-            );
-          });
-
-        GetSeatsForSchedule(connectingFlights.secondflight.ScheduleId)
-          .then((res) => {
-            setConnectingFlightSecondScheduleSeats(res);
-          })
-          .catch((error) => {
+              );
+            });
+            
+            GetSeatsForSchedule(connectingFlights.secondflight.apiPath,connectingFlights.secondflight.ScheduleId)
+            .then((res) => {
+              console.log(res)
+              const seats = res.map((seat) => capitalizeKeys(seat));
+              console.log(seats)
+              setConnectingFlightSecondScheduleSeats(seats);
+            })
+            .catch((error) => {
             console.error(
               "Error fetching seats for second connecting flight:",
               error
@@ -168,6 +197,7 @@ const FlightBooking = () => {
       seatMap[row][col] = seat;
     });
 
+
     for (let i = 1; i <= 17; i++) {
       const formattedRow = seatOrder.map((row, index) => {
         const seat = seatMap[row] ? seatMap[row][i] : null;
@@ -184,7 +214,7 @@ const FlightBooking = () => {
           : seat && seat.Status === "Available"
           ? "bg-slate-100 cursor-pointer hover:bg-gray-100"
           : seat
-          ? "bg-gray-200 cursor-not-allowed opacity-50"
+          ? "bg-[#990011] text-white cursor-not-allowed opacity-50"
           : "hidden"
       }`}
             onClick={() => seat && selectSeat(seat, mode)}
@@ -222,7 +252,7 @@ const FlightBooking = () => {
           return prevSelectedSeats;
         }
       });
-    } else if (mode === "connectingTrip") {
+    } else if (mode === "connectingTrip") { 
       if (isFirstConnectedFlight) {
         setConnectingFlightFirstSelectedSeats((prevSelectedSeats) => {
           if (prevSelectedSeats.includes(seat.SeatNumber)) {
@@ -291,7 +321,7 @@ const FlightBooking = () => {
   const handlePassengerSeatSelection = (index, selectedSeat) => {
     const updatedSelections = [...passengerSeatSelections];
     updatedSelections[index] = selectedSeat;
-    setPassengerSeatSelections(updatedSelections);
+    setPassengerSeatSelections(updatedSelections);  
   };
 
   const bookFlight = (scheduleid, status, seatList) => {
@@ -304,7 +334,20 @@ const FlightBooking = () => {
         "SingleFlightBookingInfo",
         JSON.stringify(updatedPassengerDetails)
       );
-      navigate("/FlightBooking/ConfirmBooking");
+      
+      ChangeSeatStatus(scheduleid, status, seatList)
+      .then((res) => {
+        if (mode == "singleTrip") {
+          setSingleFlightSelectedSeats([]);
+          setRefresh(!refresh);
+          navigate("/FlightBooking/ConfirmBooking");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+
+
     } else if (mode == "connectingTrip" && isFirstConnectedFlight) {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
         ...passenger,
@@ -312,8 +355,18 @@ const FlightBooking = () => {
       }));
       const detail = [updatedPassengerDetails];
       setConnectingFlightPassengerScheduleDetails(detail);
-      setRefresh(!refresh);
-      console.log(connectingFlightPassengerScheduleDetails);
+      console.log(connectingFlightDetails.firstflight.apiPath);
+      ChangeSeatStatus(connectingFlightDetails.firstflight.apiPath,scheduleid, status, seatList)
+      .then((res) => {
+        if (mode == "connectingTrip" && isFirstConnectedFlight) {
+          setIsSecondConnectedFlight(!isSecondConnectedFlight);
+          setIsFirstConnectedFlight(!isFirstConnectedFlight);
+          setRefresh(!refresh);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
     } else if (mode == "connectingTrip" && isSecondConnectedFlight) {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
         ...passenger,
@@ -330,29 +383,23 @@ const FlightBooking = () => {
         "ConnectingFlightBookingInfo",
         JSON.stringify(combinedPassengerDetails)
       );
-      navigate("/FlightBooking/ConfirmBooking");
-    }
-
-    ChangeSeatStatus(scheduleid, status, seatList)
+      console.log(connectingFlightDetails.secondflight.apiPath);
+      ChangeSeatStatus(connectingFlightDetails.secondflight.apiPath,scheduleid, status, seatList)
       .then((res) => {
-        if (mode == "singleTrip") {
-          setSingleFlightSelectedSeats([]);
-          setRefresh(!refresh);
-        } else if (mode == "connectingTrip" && isSecondConnectedFlight) {
-          setConnectingFlightSecondSelectedSeats([])
-          setIsSecondConnectedFlight(!isSecondConnectedFlight);
-          setRefresh(!refresh);
-        } else if (mode == "connectingTrip" && isFirstConnectedFlight) {
+        if (mode == "connectingTrip" && isSecondConnectedFlight) {
           setConnectingFlightFirstSelectedSeats([]);
+          setConnectingFlightSecondSelectedSeats([]);
           setIsSecondConnectedFlight(!isSecondConnectedFlight);
           setIsFirstConnectedFlight(!isFirstConnectedFlight);
           setRefresh(!refresh);
+          navigate("/FlightBooking/ConfirmBooking");
         }
-        setSelectedSeatsForPassengers([]);
       })
       .catch((err) => {
         console.error(err);
       });
+    }
+
       
   };
 

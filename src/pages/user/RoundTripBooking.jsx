@@ -279,7 +279,7 @@ const RoundTripBooking = () => {
     const seatMap = {};
     const rows = [];
     const seatOrder = ['A', 'B', 'C', 'D', 'E', 'F'];
-  
+  console.log(seats)
     seats.forEach((seat) => {
       const row = seat.SeatNumber.charAt(0);
       const col = parseInt(seat.SeatNumber.substring(1));

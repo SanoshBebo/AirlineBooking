@@ -1,8 +1,8 @@
-import axios from "./axiosInstance";
+import axios from "axios";
 
-export const GetSeatsForSchedule = async (scheduleid) => {
+export const GetSeatsForSchedule = async (ip,scheduleid) => {
   try {
-    const response = await axios.get(`api/Seats/${scheduleid}`);
+    const response = await axios.get(`${ip}Integration/seats/${scheduleid}`);
     console.log(response);
     return response.data;
   } catch (error) {
@@ -11,10 +11,10 @@ export const GetSeatsForSchedule = async (scheduleid) => {
   }
 };
 
-export const ChangeSeatStatus = async (scheduleId, status, seatNumbers) => {
+export const ChangeSeatStatus = async (ip,scheduleId, status, seatNumbers) => {
   try {
-    const response = await axios.put(
-      `api/Seats/${scheduleId}/${status}`,
+    const response = await axios.patch(
+      `${ip}Integration/changeseatstatus/${scheduleId}/${status}`,
       JSON.stringify(seatNumbers),
       {
         headers: {

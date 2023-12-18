@@ -98,6 +98,16 @@ const UserHome = () => {
     });
   }, [refresh]);
 
+  function capitalizeKeys(obj) {
+    const newObj = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+        newObj[capitalizedKey] = obj[key];
+      }
+    }
+    return newObj;
+  }
 
   const getIntegratedFlightDetails = async (
     firstAirlines,
@@ -107,11 +117,8 @@ const UserHome = () => {
     dateTime
   ) => {
     const connectionSchedules = [];
-    console.log(firstAirlines,
-      secondAirlines,
-      source,
-      destination,
-      dateTime);
+    console.log(firstAirlines, secondAirlines, source, destination, dateTime);
+
     await Promise.all(
       Object.entries(firstAirlines).map(
         async ([firstAirlineName, firstAirline]) => {
@@ -121,11 +128,15 @@ const UserHome = () => {
               `${firstAirline.apiPath}Integration/connectingflight/${source}/${destination}/${dateTime}`
             );
             console.log(firstResponse);
-            const firstFlights = firstResponse.data.map((firstFlight) => ({
+            const firstres = firstResponse.data.map((flight) =>
+              capitalizeKeys(flight)
+            );
+            const firstFlights = firstres.map((firstFlight) => ({
               ...firstFlight,
               airlineName: firstAirlineName,
               apiPath: firstAirline.apiPath,
             }));
+
             console.log(firstFlights);
 
             if (firstFlights && firstFlights.length > 0) {
@@ -139,9 +150,11 @@ const UserHome = () => {
                           const secondResponse = await axios.get(
                             `${secondAirline.apiPath}Integration/directflight/${firstFlight.DestinationAirportId}/${destination}/${firstFlight.DateTime}`
                           );
-
-                          console.log(secondResponse);
-                          const secondFlights = secondResponse.data.map(
+                          const secondResponseData = secondResponse.data.map(
+                            (flight) => capitalizeKeys(flight)
+                          );
+                          console.log(secondResponseData);
+                          const secondFlights = secondResponseData.map(
                             (secondFlight) => ({
                               ...secondFlight,
                               airlineName: secondAirlineName,
@@ -175,8 +188,10 @@ const UserHome = () => {
         }
       )
     );
-    console.log(connectionSchedules)
-    setFinalIntegratedConnectingFlights(connectionSchedules); // Uncomment this line if you want to use this data in your application
+    console.log(connectionSchedules);
+    const combinedData = [...finalIntegratedConnectingFlights, ...connectionSchedules];
+    console.log(combinedData);
+    setFinalIntegratedConnectingFlights(combinedData); // Uncomment this line if you want to use this data in your application
   };
 
   const searchFlightSchedules = async () => {
@@ -195,18 +210,28 @@ const UserHome = () => {
       filters.date
     );
 
+    getIntegratedFlightDetails(
+      airlinesapi,
+      SanoshAirlineDetails,
+      filters.source,
+      filters.destination,
+      filters.date
+    );
+
     if (bookingType == "oneway" || bookingType == "roundtrip") {
       if (bookingType == "oneway") {
         GetDirectFlightSchedule(
           filters.source,
           filters.destination,
           filters.date
-        ).then((res) => {
-          setDirectFlights(res);
-          console.log(res);
-        }).catch((err)=>{
-          console.error(err);
-        });
+        )
+          .then((res) => {
+            setDirectFlights(res);
+            console.log(res);
+          })
+          .catch((err) => {
+            console.error(err);
+          });
 
         const connectingFlights = await GetConnectingFlightSchedule(
           filters.source,
@@ -214,32 +239,8 @@ const UserHome = () => {
           filters.date
         );
 
-        if (connectingFlights && connectingFlights.length > 0) {
-          const connectedFlights = await Promise.all(
-            connectingFlights.map(async (firstFlight) => {
-              const connectedFlight = await GetDirectFlightSchedule(
-                firstFlight.DestinationAirportId,
-                filters.destination,
-                firstFlight.DateTime
-              );
+        console.log(connectingFlights)
 
-              if (connectedFlight) {
-                return {
-                  FirstFlight: firstFlight,
-                  SecondFlight: connectedFlight,
-                };
-              }
-              return null;
-            })
-          );
-
-          const filteredConnectedFlights = connectedFlights.filter(
-            (flight) => flight !== null
-          );
-
-          setFinalConnectingFlights(filteredConnectedFlights);
-          console.log(filteredConnectedFlights);
-        }
       } else if (bookingType == "roundtrip") {
         GetDirectFlightSchedule(
           filters.source,
@@ -265,15 +266,14 @@ const UserHome = () => {
           filters.date
         );
 
-
-        console.log(firstconnectingFlights)
+        console.log(firstconnectingFlights);
         const secondconnectingFlights = await GetConnectingFlightSchedule(
           filters.destination,
           filters.source,
           filters.returndate
-          );
-  
-        console.log(secondconnectingFlights)
+        );
+
+        console.log(secondconnectingFlights);
         if (firstconnectingFlights && firstconnectingFlights.length > 0) {
           const firstconnectedFlights = await Promise.all(
             firstconnectingFlights.map(async (firstFlight) => {
@@ -283,11 +283,15 @@ const UserHome = () => {
                   filters.destination,
                   firstFlight.DateTime
                 );
-        
-                console.log('Connected Flight:', connectedFlight);
-        
+
+                console.log("Connected Flight:", connectedFlight);
+
                 if (connectedFlight) {
-                  console.log('First and Connected Flight:', firstFlight, connectedFlight);
+                  console.log(
+                    "First and Connected Flight:",
+                    firstFlight,
+                    connectedFlight
+                  );
                   return {
                     FirstFlight: firstFlight,
                     SecondFlight: connectedFlight,
@@ -295,19 +299,25 @@ const UserHome = () => {
                 }
                 return null;
               } catch (error) {
-                console.error('Error occurred in GetDirectFlightSchedule:', error);
+                console.error(
+                  "Error occurred in GetDirectFlightSchedule:",
+                  error
+                );
                 return null;
               }
             })
           );
-        
-          console.log('First Connected Flights:', firstconnectedFlights);
-        
+
+          console.log("First Connected Flights:", firstconnectedFlights);
+
           const filteredFirstConnectedFlights = firstconnectedFlights.filter(
             (flight) => flight !== null
           );
-        
-          console.log('Filtered First Connected Flights:', filteredFirstConnectedFlights);
+
+          console.log(
+            "Filtered First Connected Flights:",
+            filteredFirstConnectedFlights
+          );
           setFinalFirstConnectingFlights(filteredFirstConnectedFlights);
         }
 
@@ -316,10 +326,10 @@ const UserHome = () => {
             secondconnectingFlights.map(async (firstFlight) => {
               const connectedFlight = await GetDirectFlightSchedule(
                 firstFlight.DestinationAirportId,
-                filters.source,  // Change filters.destination to the actual final destination
+                filters.source, // Change filters.destination to the actual final destination
                 firstFlight.DateTime
               );
-        
+
               if (connectedFlight) {
                 return {
                   FirstFlight: firstFlight,
@@ -329,11 +339,11 @@ const UserHome = () => {
               return null;
             })
           );
-        
+
           const filteredSecondConnectedFlights = secondconnectedFlights.filter(
             (flight) => flight !== null
           );
-        
+
           console.log(filteredSecondConnectedFlights);
           setFinalSecondConnectingFlights(filteredSecondConnectedFlights);
         }
@@ -447,25 +457,25 @@ const UserHome = () => {
 
   /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// ///////////////////////////////////////////////
   return (
-    <div className="flex flex-col p-5 w-full justify-center items-center">
-      <div className="flex flex-col gap-4 p-5 w-3/4 items-center justify-center">
-        <div className="flex flex-row gap-2">
+    <div className="flex flex-col w-full min-h-screen bg-[#FCF6F5]">
+      <div className="flex flex-col gap-4 p-5 w-full items-center justify-center ">
+        <div className="flex flex-row gap-2 p-3">
           <input
             type="checkbox"
-            className="form-checkbox h-5 w-5 text-blue-500"
+            className="form-checkbox h-5 w-5 text-blue-500 bg-white"
             checked={bookingType === "oneway"}
             onChange={() => handleCheckboxChange("oneway")}
           />
           <p>One Way</p>
           <input
             type="checkbox"
-            className="form-checkbox h-5 w-5 text-blue-500"
+            className="form-checkbox h-5 w-5 text-blue-500 bg-white"
             checked={bookingType === "roundtrip"}
             onChange={() => handleCheckboxChange("roundtrip")}
           />
           <p>Roundtrip</p>
         </div>
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-2 p-3">
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel id="demo-simple-select-label">From</InputLabel>
             <Select
@@ -473,6 +483,7 @@ const UserHome = () => {
               onChange={handleFilterChange}
               name="source"
               label="From"
+              className="bg-white"
             >
               <MenuItem value="" disabled>
                 Choose a Source
@@ -491,6 +502,7 @@ const UserHome = () => {
               onChange={handleFilterChange}
               name="destination"
               label="To"
+              className="bg-white"
             >
               <MenuItem value="" disabled>
                 Choose a Destination
@@ -508,6 +520,7 @@ const UserHome = () => {
             name="date"
             value={filters.date}
             onChange={handleFilterChange}
+            className="bg-white"
             InputLabelProps={{ shrink: true }}
           />
           {bookingType == "roundtrip" && (
@@ -515,6 +528,7 @@ const UserHome = () => {
               label="Return Date"
               type="date"
               name="returndate"
+              className="bg-white"
               value={filters.returndate}
               onChange={handleFilterChange}
               InputLabelProps={{ shrink: true }}
@@ -522,7 +536,7 @@ const UserHome = () => {
           )}
 
           <button
-            className="bg-gray-500 hover:bg-gray-700 text-white font-medium rounded p-2"
+            className="text-white font-medium rounded p-2 bg-[#990011]"
             onClick={() => {
               applyFilters();
               searchFlightSchedules();
@@ -531,84 +545,99 @@ const UserHome = () => {
             Search Flights
           </button>
           <button
-            className="bg-red-500 hover:bg-red-700 text-white font-medium rounded p-2"
+            className="bg-[#990011] text-white font-medium rounded p-2"
             onClick={resetFilters}
           >
             Reset
           </button>
         </div>
       </div>
-      {bookingType == "oneway" && searched && (
-        <div>
-          <DirectFlightDisplay
-            data={directFlights}
-            onClick={(flight, tripType) => {
-              handleFlightClick(flight, tripType);
-            }}
-            mode="oneway"
-          />
-          <ConnectionFlightDisplay
-            data={finalConnectingFlights}
-            onClick={(flight, firstFlight, tripType) =>
-              handleConnectingFlightClick(flight, firstFlight, tripType)
-            }
-            mode="oneway"
-            />
-            <ConnectionFlightDisplay
-            data={finalIntegratedConnectingFlights}
-            onClick={(flight, firstFlight, tripType) =>
-              handleConnectingFlightClick(flight, firstFlight, tripType)
-            }
-            mode="oneway"
-          />
-        </div>
-      )}
-      {bookingType == "roundtrip" && searched &&  (
-        <div className="flex flex-row justify-evenly">
+
+      <div className="">
+        {!searched && (
+          <div className="h-full items-center justify-center text-center">
+            <h1 className="text-2xl font-bold">Search for flights !!</h1>
+          </div>
+        )}
+
+        {bookingType == "oneway" && searched && (
           <div>
             <DirectFlightDisplay
-              data={directFlightsFirstFlight}
-              onClick={(flight) => {
-                handleFirstFlightDirect(flight);
+              data={directFlights}
+              onClick={(flight, tripType) => {
+                handleFlightClick(flight, tripType);
               }}
-              mode="roundtrip"
+              mode="oneway"
             />
-
-            
+            {/* <ConnectionFlightDisplay
+              data={finalConnectingFlights}
+              onClick={(flight, firstFlight, tripType) =>
+                handleConnectingFlightClick(flight, firstFlight, tripType)
+              }
+              mode="oneway"
+            /> */}
             <ConnectionFlightDisplay
-              data={finalFirstConnectingFlights}
-              onClick={(firstFlight, secondflight) =>
-                handleFirstFlightConnect(firstFlight, secondflight)
+              data={finalIntegratedConnectingFlights}
+              onClick={(flight, firstFlight, tripType) =>
+                handleConnectingFlightClick(flight, firstFlight, tripType)
               }
-              mode="roundtrip"
+              mode="oneway"
             />
           </div>
+        )}
+        {bookingType == "roundtrip" && searched && (
+          <div className="flex flex-col">
+            <div className="flex flex-row gap-20 p-10">
+              <div className="flex flex-col w-1/2 ">
+                <h1 className="font-semibold text-2xl text-center p-4 text-[#990011]">ONWARD FLIGHTS</h1>
+                <DirectFlightDisplay
+                  data={directFlightsFirstFlight}
+                  onClick={(flight) => {
+                    handleFirstFlightDirect(flight);
+                  }}
+                  mode="roundtrip"
+                />
 
+                <ConnectionFlightDisplay
+                  data={finalFirstConnectingFlights}
+                  onClick={(firstFlight, secondflight) =>
+                    handleFirstFlightConnect(firstFlight, secondflight)
+                  }
+                  mode="roundtrip"
+                />
+              </div>
 
-          <div>
-            <DirectFlightDisplay
-              data={directFlightSecondFlight}
-              onClick={(flight) => {
-                handleSecondFlightDirect(flight);
-              mode="roundtrip"
+              <div className="flex flex-col w-1/2">
+              <h1 className="font-semibold text-2xl text-center p-4 text-[#990011]">RETURN FLIGHTS</h1>
 
-              }}
-            />
-<ConnectionFlightDisplay
-              data={finalSecondConnectingFlights}
-              onClick={(firstFlight, secondflight) =>
-                handleSecondFlightConnect(firstFlight, secondflight)
-              }
-              mode="roundtrip"
-            />
+                <DirectFlightDisplay
+                  data={directFlightSecondFlight}
+                  onClick={(flight) => {
+                    handleSecondFlightDirect(flight);
+                    mode = "roundtrip";
+                  }}
+                />
+                <ConnectionFlightDisplay
+                  data={finalSecondConnectingFlights}
+                  onClick={(firstFlight, secondflight) =>
+                    handleSecondFlightConnect(firstFlight, secondflight)
+                  }
+                  mode="roundtrip"
+                />
+              </div>
+            </div>
 
-
-            <button onClick={() => confirmRoundTripBooking()}>
-              confirm booking
-            </button>
+            <div className="w-full">
+              <button
+                className="w-full rounded-lg p-4 mb-10 bg-[#990011] text-white hover:bg-[#7c1420] transition duration-300 ease-in-out "
+                onClick={() => confirmRoundTripBooking()}
+              >
+                confirm booking
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

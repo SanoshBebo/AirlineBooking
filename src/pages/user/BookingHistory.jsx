@@ -14,6 +14,7 @@ const BookingHistory = () => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
+    console.log(user);
     GetBookingsOfUser(user.UserId)
       .then((res) => {
         console.log(res);
@@ -123,7 +124,6 @@ const BookingHistory = () => {
                 key={ticketIndex}
                 className="border p-4 bg-white rounded-md shadow-md relative"
               >
-                {console.log(ticket)}
                 <button
                   className="absolute top-2 right-2 text-sm font-semibold text-red-500 hover:text-red-600 focus:outline-none"
                   onClick={() =>
@@ -142,22 +142,38 @@ const BookingHistory = () => {
                 <p className="mb-2">Seat No: {ticket.Ticket.SeatNo}</p>
                 <p className="mb-2">Age: {ticket.Ticket.Age}</p>
                 <p className="mb-2">Gender: {ticket.Ticket.Gender}</p>
-                <p className="mb-2">
-                  Flight Name: {ticket.FlightSchedule.FlightName}
-                </p>
+                {ticket.FlightSchedule ? (
+                  <p className="mb-2">
+                    Flight Name: {ticket.FlightSchedule.FlightName}
+                  </p>
+                ) : (
+                  <p className="mb-2">Flight Name: {ticket.FlightName}</p>
+                )}
+
                 <p className="mb-2">
                   Source Airport: {ticket.SourceAirport.AirportName}
                 </p>
                 <p className="mb-2">
                   Destination Airport: {ticket.DestinationAirport.AirportName}
                 </p>
-                <p className="mb-2">
+                {/* <p className="mb-2">
                   Flight Duration: {ticket.FlightSchedule.FlightDuration}
-                </p>
-                <p className="mb-2">
-                  Date: {ticket.FlightSchedule.DateTime.split("T")[0]}
-                </p>
-                <p>Time: {ticket.FlightSchedule.DateTime.split("T")[1]}</p>
+                </p> */}
+                {ticket.FlightSchedule ? (
+                  <div>
+                    <p className="mb-2">
+                      Date: {ticket.FlightSchedule.DateTime.split("T")[0]}
+                    </p>
+                    <p>Time: {ticket.FlightSchedule.DateTime.split("T")[1]}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="mb-2">
+                      Date: {ticket.Ticket.DateTime.split("T")[0]}
+                    </p>
+                    <p>Time: {ticket.Ticket.DateTime.split("T")[1]}</p>
+                  </div>
+                )}
               </div>
             ))}
           </div>

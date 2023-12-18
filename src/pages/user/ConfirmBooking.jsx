@@ -444,9 +444,44 @@ const ConfirmBooking = () => {
           });
       }
     } else {
-      const seats = PassengerDetails.map((passenger) => passenger.SeatNo);
-      console.log(seats);
-      ChangeSeatStatus(FlightScheduleDetails.ScheduleId, "Available", seats)
+      if(flightType == "directflight"){
+
+      }else if(flightType == "connectingFlights")
+
+      console.log(PassengerDetails)
+      const passengerDetailList = PassengerDetails.flat();
+
+      console.log(FlightScheduleDetails.firstflight.ScheduleId,FlightScheduleDetails.secondflight.ScheduleId)
+     
+     
+      let halfIndex = Math.floor(passengerDetailList.length / 2);
+        let firstHalfPassengerDetails = passengerDetailList.slice(
+          0,
+          halfIndex
+        );
+        let secondHalfPassengerDetails =
+        passengerDetailList.slice(halfIndex);
+
+
+        const firstseats = firstHalfPassengerDetails.map(
+          (passenger) => passenger.SeatNo
+        );
+        const secondseats = secondHalfPassengerDetails.map(
+          (passenger) => passenger.SeatNo
+        );
+
+          console.log(firstseats)
+          console.log(secondseats)
+
+      ChangeSeatStatus(FlightScheduleDetails.firstflight.apiPath,FlightScheduleDetails.firstflight.ScheduleId, "Available", firstseats)
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+
+      ChangeSeatStatus(FlightScheduleDetails.secondflight.apiPath,FlightScheduleDetails.secondflight.ScheduleId, "Available", secondseats)
         .then((res) => {
           console.log(res);
         })
@@ -454,6 +489,7 @@ const ConfirmBooking = () => {
           console.error(err);
         });
     }
+    navigate("/userhome");
   };
 
   return (

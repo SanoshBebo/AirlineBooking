@@ -11,14 +11,14 @@ const ConnectionFlightDisplay = ({data,onClick,mode}) => {
     return (
         <>
           {mode == "oneway" && (
-            <div className="m-5">
+            <div className="">
               {data.map((connection, index) => (
                 <div key={index} className="flex justify-between">
                   <div className="">
                     {connection.SecondFlight.map((flight, i) => (
                       <div
                         key={i}
-                        className={`flex flex-row-reverse border p-4 rounded-md cursor-pointer  hover:bg-gray-100 my-4 transition duration-300 ease-in-out ${
+                        className={`flex flex-row-reverse border p-4 rounded-md cursor-pointer bg-gray-100   hover:bg-gray-100 my-4 transition duration-300 ease-in-out ${
                           clicked ? 'bg-green-200' : ''
                         }`}
                         onClick={() =>
@@ -71,14 +71,14 @@ const ConnectionFlightDisplay = ({data,onClick,mode}) => {
           )}
       
           {mode == "roundtrip" && (
-            <div className="m-5">
+            <div className="">
               {data.map((connection, index) => (
                 <div key={index} className="flex justify-between">
                   <div className="">
                     {connection.SecondFlight.map((flight, i) => (
                       <div
                         key={i}
-                        className={`flex flex-row-reverse border p-4 rounded-md cursor-pointer hover:bg-gray-100 my-4 transition duration-300 ease-in-out ${
+                        className={`flex flex-row-reverse border p-4 bg-gray-100  rounded-md cursor-pointer hover: my-4 transition duration-300 ease-in-out ${
                           clicked ? 'bg-green-200' : ''
                         }`}
                         onClick={() =>{handleDivClick();  onClick(connection.FirstFlight, flight);}
@@ -90,8 +90,8 @@ const ConnectionFlightDisplay = ({data,onClick,mode}) => {
                             <li className="font-bold text-purple-600">
                               {flight.FlightName}
                             </li>
-                            <li>{flight.SourceAirportId}</li>
-                            <li>{flight.DestinationAirportId}</li>
+                            <li>{flight.SourceAirportName}</li>
+                            <li>{flight.DestinationAirportName}</li>
                             <li>Flight Duration: {flight.FlightDuration}</li>
                             <li>
                               Departure Date: {flight.DateTime.split("T")[0]}
@@ -101,13 +101,16 @@ const ConnectionFlightDisplay = ({data,onClick,mode}) => {
                             </li>
                           </ul>
                         </div>
+                        <div>
+
+                        </div>
                         <div className="p-5">
                           <ul>
                             <li className="font-bold text-purple-600">
                               {connection.FirstFlight.FlightName}
                             </li>
-                            <li>{connection.FirstFlight.SourceAirportId}</li>
-                            <li>{connection.FirstFlight.DestinationAirportId}</li>
+                            <li>{connection.FirstFlight.SourceAirportName}</li>
+                            <li>{connection.FirstFlight.DestinationAirportName}</li>
                             <li>
                               Flight Duration:{" "}
                               {connection.FirstFlight.FlightDuration}

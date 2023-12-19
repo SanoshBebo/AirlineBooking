@@ -1,6 +1,7 @@
 import axios from "./axiosInstance";
 
 export const RegisterCall = async (registrationData) => {
+  console.log("hi")
   try {
     const response = await axios.post("api/Auth/register", registrationData, {
       headers: {

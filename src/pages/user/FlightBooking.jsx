@@ -91,8 +91,6 @@ const FlightBooking = () => {
     return newObj;
   }
 
-
-
   useEffect(() => {
     if (mode == "singleTrip") {
       const directFlightDetails = sessionStorage.getItem("directflight");
@@ -356,6 +354,7 @@ const FlightBooking = () => {
       const detail = [updatedPassengerDetails];
       setConnectingFlightPassengerScheduleDetails(detail);
       console.log(connectingFlightDetails.firstflight.apiPath);
+
       ChangeSeatStatus(connectingFlightDetails.firstflight.apiPath,scheduleid, status, seatList)
       .then((res) => {
         if (mode == "connectingTrip" && isFirstConnectedFlight) {
@@ -383,7 +382,7 @@ const FlightBooking = () => {
         "ConnectingFlightBookingInfo",
         JSON.stringify(combinedPassengerDetails)
       );
-      console.log(connectingFlightDetails.secondflight.apiPath);
+      console.log(connectingFlightDetails.secondflight.apiPath,scheduleid, status, seatList);
       ChangeSeatStatus(connectingFlightDetails.secondflight.apiPath,scheduleid, status, seatList)
       .then((res) => {
         if (mode == "connectingTrip" && isSecondConnectedFlight) {

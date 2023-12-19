@@ -52,6 +52,21 @@ export const MakeBooking = async (bookings) => {
     }
   };
 
+export const sendConfirmationTicketsViaEmail = async (tickets,email) => {
+    try {
+      const response = await axiosInstance.post(`api/Bookings`, JSON.stringify(tickets), {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
   export const MakePartnerBooking = async (booking) => {
     try {
       const response = await axiosInstance.post(`api/Bookings/partnerbookings`, JSON.stringify(booking), {
@@ -110,7 +125,7 @@ export const MakeBooking = async (bookings) => {
   export const CancelTicketsInPartnerBooking = async (ip,bookingid,passengernames) => {
     try {
       console.log(ip,bookingid,passengernames)
-      const response = await axios.patch(`${ip}Integration/cancelticketsinpartnerbooking/${bookingid}`,JSON.stringify(passengernames), {
+      const response = await axios.patch(`${ip}Integration/cancelticketsinpartnerbooking/${bookingid}`,JSON.stringify([passengernames]), {
         headers: {
           'Content-Type': 'application/json',
         },

@@ -114,14 +114,20 @@ const ConfirmBooking = () => {
         const result = await GetConnectionTickets(bookingid);
         console.log(result);
 
+        // await sendConfirmationTicketsViaEmail(result);
+
         result.map(async (Ticket) => {
+          console.log(Ticket)
           const airline = airlinesapi[Ticket.AirlineName];
           console.log(airline.apiPath);
+          const modifiedTicket = { ...Ticket, AirlineName:"SanoshAirlines"}
           console.log(`${airline.apiPath}Integration/partnerbooking`);
+
           try {
+
             const response = await axios.post(
               `${airline.apiPath}Integration/partnerbooking`,
-              JSON.stringify([Ticket]),
+              JSON.stringify([modifiedTicket]),
               {
                 headers: {
                   "Content-Type": "application/json",
@@ -279,7 +285,7 @@ const ConfirmBooking = () => {
           FlightScheduleDetails.firstflight.DestinationAirportId,
         FlightName: FlightScheduleDetails.firstflight.FlightName,
         SourceAirportId: FlightScheduleDetails.firstflight.SourceAirportId,
-        AirlineName: "AbhiramAirlines",
+        AirlineName: FlightScheduleDetails.firstflight.airlineName,
       };
 
       let secondFlightBookingModel = {
@@ -293,7 +299,7 @@ const ConfirmBooking = () => {
           FlightScheduleDetails.secondflight.DestinationAirportId,
         FlightName: FlightScheduleDetails.secondflight.FlightName,
         SourceAirportId: FlightScheduleDetails.secondflight.SourceAirportId,
-        AirlineName: "AbhiramAirlines",
+        AirlineName: FlightScheduleDetails.secondflight.airlineName,
       };
 
       console.log(...connectingFlightBookingModel);

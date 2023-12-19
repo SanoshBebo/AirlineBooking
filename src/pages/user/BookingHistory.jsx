@@ -30,27 +30,27 @@ const BookingHistory = () => {
     console.log(bookingId, Name);
     let nameList = [Name];
 
-    // CancelTicketsInABooking(bookingId, nameList)
-    //   .then((res) => {
-    //     console.log(res);
-    //     setRefresh(!refresh);
-    //   })
-    //   .catch((err) => {
-    //     console.error(err);
-    //   });
+    CancelTicketsInABooking(bookingId, nameList)
+      .then((res) => {
+        console.log(res);
+        setRefresh(!refresh);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
 
-    // if (ticket.Ticket.AirlineName) {
-    //   console.log("first");
-    //   const ip = airlinesapi[ticket.Ticket.AirlineName];
-    //   console.log(ip);
-    //   CancelTicketsInPartnerBooking(ip.apiPath, bookingId, Name)
-    //     .then((res) => {
-    //       console.log(res);
-    //     })
-    //     .catch((err) => {
-    //       console.error(err);
-    //     });
-    // }
+    if (ticket.Ticket.AirlineName) {
+      console.log("first");
+      const ip = airlinesapi[ticket.Ticket.AirlineName];
+      console.log(ip);
+      CancelTicketsInPartnerBooking(ip.apiPath, bookingId, Name)
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
   };
 
   const handleCancelBooking = (BookingId, booking) => {

@@ -194,13 +194,13 @@ const UserHome = () => {
       )
     );
     console.log(connectionSchedules);
+    // setFinalIntegratedConnectingFlights(connectionSchedules); // Uncomment this line if you want to use this data in your application
     // const combinedData = [
     //   ...finalIntegratedConnectingFlights,
     //   ...connectionSchedules,
     // ];
     // console.log(combinedData);
     return connectionSchedules;
-    // setFinalIntegratedConnectingFlights(connectionSchedules); // Uncomment this line if you want to use this data in your application
   };
 
   const searchFlightSchedules = async () => {
@@ -230,6 +230,7 @@ const UserHome = () => {
       );
       console.log(secondResult);
       const data = [...firstResult, ...secondResult];
+      // const data = [...firstResult];
       console.log(data);
       setFinalIntegratedConnectingFlights(data);
       setLoaded(true);
@@ -425,7 +426,7 @@ const UserHome = () => {
     navigate(`/FlightBookingDetail/${mode}`);
   };
 
-  const handleConnectingFlightClick = (firstflight, secondflight, mode) => {
+  const handleConnectingFlightClick = (secondflight, firstflight, mode) => {
     const connectingFlights = {
       firstflight,
       secondflight,
@@ -508,7 +509,7 @@ const UserHome = () => {
               </MenuItem>
               {airports.map((airport) => (
                 <MenuItem key={airport.AirportId} value={airport.AirportId}>
-                  {airport.City}
+                  {airport.City},{airport.AirportName}
                 </MenuItem>
               ))}
             </Select>
@@ -527,7 +528,7 @@ const UserHome = () => {
               </MenuItem>
               {airports.map((airport) => (
                 <MenuItem key={airport.AirportId} value={airport.AirportId}>
-                  {airport.City}
+                  {airport.City},{airport.AirportName}
                 </MenuItem>
               ))}
             </Select>
@@ -573,14 +574,18 @@ const UserHome = () => {
 
       <div className="">
         {!searched && (
-        <Message data={"Prepared with the boarding pass in hand, all set to take flight!"} />
+          <Message
+            data={
+              "Prepared with the boarding pass in hand, all set to take flight!"
+            }
+          />
         )}
 
         {bookingType == "oneway" &&
           searched &&
           (loaded ? (
-            directFlights.length>0 &&
-            finalIntegratedConnectingFlights.length>0 ? (
+            directFlights.length > 0 ||
+            finalIntegratedConnectingFlights.length > 0 ? (
               <div className="flex flex-row justify-evenly">
                 <DirectFlightDisplay
                   data={directFlights}
@@ -597,11 +602,11 @@ const UserHome = () => {
                   mode="oneway"
                 />
               </div>
-            ):(
-<Message data={"Oops, NO FLIGHTS AVAILABLE :("} />
+            ) : (
+              <Message data={"Oops, NO FLIGHTS AVAILABLE :("} />
             )
           ) : (
-            <MediaLoader/>
+            <MediaLoader />
           ))}
         {bookingType == "roundtrip" && searched && (
           <div className="flex flex-col">

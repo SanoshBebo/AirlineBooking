@@ -77,6 +77,8 @@ const Login = () => {
         Password: btoa(password + "ajlnlsg@DK%&"),
         Role: role,
       };
+
+      console.log(registrationData)
       try {
         RegisterCall(registrationData).then((response) => {
           if (response.Role) {

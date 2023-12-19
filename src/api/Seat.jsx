@@ -12,6 +12,7 @@ export const GetSeatsForSchedule = async (ip,scheduleid) => {
 };
 
 export const ChangeSeatStatus = async (ip,scheduleId, status, seatNumbers) => {
+  console.log(ip,scheduleId, status, seatNumbers)
   try {
     const response = await axios.patch(
       `${ip}Integration/changeseatstatus/${scheduleId}/${status}`,

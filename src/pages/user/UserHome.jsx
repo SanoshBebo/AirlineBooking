@@ -8,7 +8,9 @@ import {
 } from "../../api/FlightSchedules";
 import { GetFlightDetails } from "../../api/FlightDetails";
 import {
+  Box,
   Button,
+  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
@@ -27,7 +29,9 @@ import { airlinesapi, SanoshAirlineDetails } from "../../components/Constants";
 import axios from "axios";
 import ConnectionFlightDisplay from "../../components/ConnectionFlightDisplay";
 import DirectFlightDisplay from "../../components/DirectFlightDisplay";
+import MediaLoader from "../../components/MediaLoader";
 
+import Message from "../../components/assetDisplayComponent/Message";
 const UserHome = () => {
   const [flightSchedules, setFlightSchedules] = useState([]);
 
@@ -77,6 +81,7 @@ const UserHome = () => {
     useState([]);
 
   const [roundTripDetails, setRoundTripDetails] = useState([]);
+  const [loaded, setLoaded] = useState(false);
 
   const firstAirlines = [];
   const secondAirlines = [];
@@ -84,10 +89,10 @@ const UserHome = () => {
   /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// ///////////////////////////////////////////////
   useEffect(() => {
     // Fetch flight schedules, airports, and flights data
-    GetAllFlightSchedules().then((res) => {
-      setFlightSchedules(res);
-      setFilteredSchedules(res); // Initialize filteredSchedules with all schedules
-    });
+    // GetAllFlightSchedules().then((res) => {
+    //   setFlightSchedules(res);
+    //   setFilteredSchedules(res); // Initialize filteredSchedules with all schedules
+    // });
 
     GetAirports().then((res) => {
       setAirports(res);
@@ -189,9 +194,13 @@ const UserHome = () => {
       )
     );
     console.log(connectionSchedules);
-    const combinedData = [...finalIntegratedConnectingFlights, ...connectionSchedules];
-    console.log(combinedData);
-    setFinalIntegratedConnectingFlights(combinedData); // Uncomment this line if you want to use this data in your application
+    // const combinedData = [
+    //   ...finalIntegratedConnectingFlights,
+    //   ...connectionSchedules,
+    // ];
+    // console.log(combinedData);
+    return connectionSchedules;
+    // setFinalIntegratedConnectingFlights(connectionSchedules); // Uncomment this line if you want to use this data in your application
   };
 
   const searchFlightSchedules = async () => {
@@ -201,22 +210,32 @@ const UserHome = () => {
     setDirectFlightSecondFlight([]);
     setDirectFlights([]);
     setSearched(true);
+    try {
+      setFinalIntegratedConnectingFlights([]);
+      const firstResult = await getIntegratedFlightDetails(
+        SanoshAirlineDetails,
+        airlinesapi,
+        filters.source,
+        filters.destination,
+        filters.date
+      );
+      console.log(firstResult);
 
-    getIntegratedFlightDetails(
-      SanoshAirlineDetails,
-      airlinesapi,
-      filters.source,
-      filters.destination,
-      filters.date
-    );
-
-    getIntegratedFlightDetails(
-      airlinesapi,
-      SanoshAirlineDetails,
-      filters.source,
-      filters.destination,
-      filters.date
-    );
+      const secondResult = await getIntegratedFlightDetails(
+        airlinesapi,
+        SanoshAirlineDetails,
+        filters.source,
+        filters.destination,
+        filters.date
+      );
+      console.log(secondResult);
+      const data = [...firstResult, ...secondResult];
+      console.log(data);
+      setFinalIntegratedConnectingFlights(data);
+      setLoaded(true);
+    } catch (error) {
+      console.error(error);
+    }
 
     if (bookingType == "oneway" || bookingType == "roundtrip") {
       if (bookingType == "oneway") {
@@ -232,15 +251,6 @@ const UserHome = () => {
           .catch((err) => {
             console.error(err);
           });
-
-        const connectingFlights = await GetConnectingFlightSchedule(
-          filters.source,
-          filters.destination,
-          filters.date
-        );
-
-        console.log(connectingFlights)
-
       } else if (bookingType == "roundtrip") {
         GetDirectFlightSchedule(
           filters.source,
@@ -354,6 +364,7 @@ const UserHome = () => {
   };
 
   const handleCheckboxChange = (type) => {
+    setSearched(false);
     setBookingType(type);
   };
 
@@ -363,12 +374,19 @@ const UserHome = () => {
     if ((name === "date" && value) || (name === "returndate" && value)) {
       const selectedDate = new Date(value);
       const formattedDateTime = selectedDate.toISOString();
-      setDate(formattedDateTime.split(".")[0]);
-      setFilters({ ...filters, [name]: value });
+      const currentDate = new Date(filters.date); // Assuming 'date' is your onward date state
+
+      if (name == "returndate" && selectedDate <= currentDate) {
+        toast.error("Return date should be greater than onward date");
+      } else {
+        setDate(formattedDateTime.split(".")[0]);
+        setFilters({ ...filters, [name]: value });
+      }
     } else {
       setFilters({ ...filters, [name]: value });
     }
   };
+
   /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// ///////////////////////////////////////////////
   const applyFilters = () => {
     const { date, source, destination, returndate } = filters;
@@ -555,41 +573,43 @@ const UserHome = () => {
 
       <div className="">
         {!searched && (
-          <div className="h-full items-center justify-center text-center">
-            <h1 className="text-2xl font-bold">Search for flights !!</h1>
-          </div>
+        <Message data={"Prepared with the boarding pass in hand, all set to take flight!"} />
         )}
 
-        {bookingType == "oneway" && searched && (
-          <div>
-            <DirectFlightDisplay
-              data={directFlights}
-              onClick={(flight, tripType) => {
-                handleFlightClick(flight, tripType);
-              }}
-              mode="oneway"
-            />
-            {/* <ConnectionFlightDisplay
-              data={finalConnectingFlights}
-              onClick={(flight, firstFlight, tripType) =>
-                handleConnectingFlightClick(flight, firstFlight, tripType)
-              }
-              mode="oneway"
-            /> */}
-            <ConnectionFlightDisplay
-              data={finalIntegratedConnectingFlights}
-              onClick={(flight, firstFlight, tripType) =>
-                handleConnectingFlightClick(flight, firstFlight, tripType)
-              }
-              mode="oneway"
-            />
-          </div>
-        )}
+        {bookingType == "oneway" &&
+          searched &&
+          (loaded ? (
+            directFlights.length>0 &&
+            finalIntegratedConnectingFlights.length>0 ? (
+              <div className="flex flex-row justify-evenly">
+                <DirectFlightDisplay
+                  data={directFlights}
+                  onClick={(flight, tripType) => {
+                    handleFlightClick(flight, tripType);
+                  }}
+                  mode="oneway"
+                />
+                <ConnectionFlightDisplay
+                  data={finalIntegratedConnectingFlights}
+                  onClick={(flight, firstFlight, tripType) =>
+                    handleConnectingFlightClick(flight, firstFlight, tripType)
+                  }
+                  mode="oneway"
+                />
+              </div>
+            ):(
+<Message data={"Oops, NO FLIGHTS AVAILABLE :("} />
+            )
+          ) : (
+            <MediaLoader/>
+          ))}
         {bookingType == "roundtrip" && searched && (
           <div className="flex flex-col">
             <div className="flex flex-row gap-20 p-10">
               <div className="flex flex-col w-1/2 ">
-                <h1 className="font-semibold text-2xl text-center p-4 text-[#990011]">ONWARD FLIGHTS</h1>
+                <h1 className="font-semibold text-2xl text-center p-4 text-[#990011]">
+                  ONWARD FLIGHTS
+                </h1>
                 <DirectFlightDisplay
                   data={directFlightsFirstFlight}
                   onClick={(flight) => {
@@ -608,7 +628,9 @@ const UserHome = () => {
               </div>
 
               <div className="flex flex-col w-1/2">
-              <h1 className="font-semibold text-2xl text-center p-4 text-[#990011]">RETURN FLIGHTS</h1>
+                <h1 className="font-semibold text-2xl text-center p-4 text-[#990011]">
+                  RETURN FLIGHTS
+                </h1>
 
                 <DirectFlightDisplay
                   data={directFlightSecondFlight}
@@ -638,6 +660,7 @@ const UserHome = () => {
           </div>
         )}
       </div>
+      <ToastContainer />
     </div>
   );
 };

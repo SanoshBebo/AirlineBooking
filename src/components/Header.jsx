@@ -22,15 +22,20 @@ const Header = () => {
       <div className="container mx-auto flex justify-between items-center">
         <h1 className="text-white text-l md:text-2xl lg:text-3xl  font-bold hover:cursor-pointer" onClick={()=>navigate("/userhome")}>Sanosh Airlines</h1>
         <div className="space-x-4">
-          {user && (
-            <>
+          {user && ( console.log(user) &&
+            user.Role == "Admin" ? ( <>
+            </>) : ( <>
+              <Button  onClick={()=>navigate("/BookingHistory")} variant="contained" color="inherit">
+                Booking History
+              </Button>
               <Button  onClick={handleBack} variant="contained" color="inherit">
                 Back
               </Button>
               <Button onClick={handleSignOut} variant="contained" color="inherit">
                 Sign Out
               </Button>
-            </>
+            </>)
+           
           )}
         </div>
       </div>

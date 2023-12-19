@@ -149,7 +149,7 @@ const ConfirmBooking = () => {
           Status: "Booked",
           PassengerInfos: firstFlightPassengerDetails,
           UserId: userData.UserId,
-          BookingType: "Onward",
+          BookingType: "Round Trip",
           ScheduleId: firstFlightScheduleDetails.ScheduleId,
           DateTime: firstFlightScheduleDetails.DateTime,
           DestinationAirportId: firstFlightScheduleDetails.DestinationAirportId,
@@ -173,7 +173,7 @@ const ConfirmBooking = () => {
           Status: "Booked",
           PassengerInfos: firstHalfPassengerDetails,
           UserId: userData.UserId,
-          BookingType: "Onward",
+          BookingType: "Round Trip",
           ScheduleId: firstFlightScheduleDetails.firstflight.ScheduleId,
           DateTime: firstFlightScheduleDetails.firstflight.DateTime,
           DestinationAirportId:
@@ -188,7 +188,7 @@ const ConfirmBooking = () => {
           Status: "Booked",
           PassengerInfos: secondHalfPassengerDetails,
           UserId: userData.UserId,
-          BookingType: "Onward",
+          BookingType: "Round Trip",
           ScheduleId: firstFlightScheduleDetails.secondflight.ScheduleId,
           DateTime: firstFlightScheduleDetails.secondflight.DateTime,
           DestinationAirportId:
@@ -210,7 +210,7 @@ const ConfirmBooking = () => {
           Status: "Booked",
           PassengerInfos: secondFlightPassengerDetails,
           UserId: userData.UserId,
-          BookingType: "Onward",
+          BookingType: "Round Trip",
           ScheduleId: secondFlightScheduleDetails.ScheduleId,
           DateTime: secondFlightScheduleDetails.DateTime,
           DestinationAirportId:
@@ -236,7 +236,7 @@ const ConfirmBooking = () => {
           Status: "Booked",
           PassengerInfos: firstHalfPassengerDetails,
           UserId: userData.UserId,
-          BookingType: "Onward",
+          BookingType: "Round Trip",
           ScheduleId: secondFlightScheduleDetails.firstflight.ScheduleId,
           DateTime: secondFlightScheduleDetails.firstflight.DateTime,
           DestinationAirportId:
@@ -251,7 +251,7 @@ const ConfirmBooking = () => {
           Status: "Booked",
           PassengerInfos: secondHalfPassengerDetails,
           UserId: userData.UserId,
-          BookingType: "Onward",
+          BookingType: "Round Trip",
           ScheduleId: secondFlightScheduleDetails.secondflight.ScheduleId,
           DateTime: secondFlightScheduleDetails.secondflight.DateTime,
           DestinationAirportId:

@@ -335,7 +335,7 @@ const FlightBooking = () => {
         JSON.stringify(updatedPassengerDetails)
       );
       
-      ChangeSeatStatus(scheduleid, status, seatList)
+      ChangeSeatStatus(SanoshAirlineDetails.SanoshAirlines.apiPath,scheduleid, status, seatList)
       .then((res) => {
         if (mode == "singleTrip") {
           setSingleFlightSelectedSeats([]);

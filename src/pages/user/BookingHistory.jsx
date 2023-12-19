@@ -30,27 +30,27 @@ const BookingHistory = () => {
     console.log(bookingId, Name);
     let nameList = [Name];
 
-    CancelTicketsInABooking(bookingId, nameList)
-      .then((res) => {
-        console.log(res);
-        setRefresh(!refresh);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    // CancelTicketsInABooking(bookingId, nameList)
+    //   .then((res) => {
+    //     console.log(res);
+    //     setRefresh(!refresh);
+    //   })
+    //   .catch((err) => {
+    //     console.error(err);
+    //   });
 
-    if (ticket.Ticket.AirlineName) {
-      console.log("first");
-      const ip = airlinesapi[ticket.Ticket.AirlineName];
-      console.log(ip);
-      CancelTicketsInPartnerBooking(ip.apiPath, bookingId, Name)
-        .then((res) => {
-          console.log(res);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }
+    // if (ticket.Ticket.AirlineName) {
+    //   console.log("first");
+    //   const ip = airlinesapi[ticket.Ticket.AirlineName];
+    //   console.log(ip);
+    //   CancelTicketsInPartnerBooking(ip.apiPath, bookingId, Name)
+    //     .then((res) => {
+    //       console.log(res);
+    //     })
+    //     .catch((err) => {
+    //       console.error(err);
+    //     });
+    // }
   };
 
   const handleCancelBooking = (BookingId, booking) => {
@@ -124,18 +124,28 @@ const BookingHistory = () => {
                 key={ticketIndex}
                 className="border p-4 bg-white rounded-md shadow-md relative"
               >
-                <button
-                  className="absolute top-2 right-2 text-sm font-semibold text-red-500 hover:text-red-600 focus:outline-none"
-                  onClick={() =>
-                    handleCancelTicket(
-                      booking.Booking.BookingId,
-                      ticket.Ticket.Name,
-                      ticket
-                    )
-                  }
-                >
-                  Cancel Ticket
-                </button>
+                {
+                  ticket.Ticket.Status == "Booked" ? ( <button
+                    className="absolute top-2 right-2 text-sm font-semibold text-red-500 hover:text-red-600 focus:outline-none"
+                    onClick={() =>
+                      handleCancelTicket(
+                        booking.Booking.BookingId,
+                        ticket.Ticket.Name,
+                        ticket
+                      )
+                    }
+                  >
+                    Cancel Ticket
+                  </button>) :(
+                    <button
+                    disabled
+                    className="absolute top-2 right-2 text-sm font-semibold p-2 rounded bg-gray-500 text-white "
+                  >
+                    Cancelled
+                  </button>
+                  )
+                }
+               
                 <p className="font-semibold mb-2">Name: {ticket.Ticket.Name}</p>
                 <p className="mb-2">Ticket No: {ticket.Ticket.TicketNo}</p>
                 <p className="mb-2">Schedule ID: {ticket.Ticket.ScheduleId}</p>

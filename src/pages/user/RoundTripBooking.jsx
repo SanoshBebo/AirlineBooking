@@ -4,6 +4,7 @@ import SeatDisplay from "../../components/SeatDisplay";
 import { useNavigate } from "react-router";
 import { ToastContainer } from "react-toastify";
 import { ChangeSeatStatus, GetSeatsForSchedule } from "../../api/Seat";
+import { SanoshAirlineDetails } from "../../components/Constants";
 
 const RoundTripBooking = () => {
   const [flightno, setflightno] = useState(0);
@@ -97,7 +98,7 @@ const RoundTripBooking = () => {
       );
       console.log(roundTripDetails[flightno].firstflight.ScheduleId);
       console.log(roundTripDetails[flightno].secondflight.ScheduleId);
-      GetSeatsForSchedule(roundTripDetails[flightno].firstflight.ScheduleId)
+      GetSeatsForSchedule(SanoshAirlineDetails.SanoshAirlines.apiPath,roundTripDetails[flightno].firstflight.ScheduleId)
         .then((res) => {
           setConnectingFlightFirstScheduleSeats(res);
         })
@@ -108,7 +109,7 @@ const RoundTripBooking = () => {
           );
         });
 
-      GetSeatsForSchedule(roundTripDetails[flightno].secondflight.ScheduleId)
+      GetSeatsForSchedule(SanoshAirlineDetails.SanoshAirlines.apiPath,roundTripDetails[flightno].secondflight.ScheduleId)
         .then((res) => {
           setConnectingFlightSecondScheduleSeats(res);
         })
@@ -121,7 +122,7 @@ const RoundTripBooking = () => {
     } else {
       setMode("singleTrip");
       setfirstFlightScheduleId(roundTripDetails[flightno].ScheduleId);
-      GetSeatsForSchedule(roundTripDetails[flightno].ScheduleId)
+      GetSeatsForSchedule(SanoshAirlineDetails.SanoshAirlines.apiPath,roundTripDetails[flightno].ScheduleId)
         .then((res) => {
           setSingleFlightScheduleSeats(res);
         })
@@ -173,7 +174,7 @@ const RoundTripBooking = () => {
           JSON.stringify(updatedPassengerDetails)
         );
 
-        ChangeSeatStatus(scheduleid, status, seatList)
+        ChangeSeatStatus(SanoshAirlineDetails.SanoshAirlines.apiPath,scheduleid, status, seatList)
           .then((res) => {
             if (mode == "singleTrip") {
               setSingleFlightSelectedSeats([]);
@@ -190,7 +191,7 @@ const RoundTripBooking = () => {
           JSON.stringify(updatedPassengerDetails)
         );
         setflightno(1);
-        ChangeSeatStatus(scheduleid, status, seatList)
+        ChangeSeatStatus(SanoshAirlineDetails.SanoshAirlines.apiPath,scheduleid, status, seatList)
           .then((res) => {
             if (mode == "singleTrip") {
               setSingleFlightSelectedSeats([]);
@@ -207,7 +208,7 @@ const RoundTripBooking = () => {
         SeatNo: passengerSeatSelections[index] || "",
       }));
       setConnectingFlightPassengerScheduleDetails(updatedPassengerDetails);
-      ChangeSeatStatus(scheduleid, status, seatList)
+      ChangeSeatStatus(SanoshAirlineDetails.SanoshAirlines.apiPath,scheduleid, status, seatList)
         .then((res) => {
           if (mode == "connectingTrip" && isFirstConnectedFlight) {
             setIsSecondConnectedFlight(!isSecondConnectedFlight);
@@ -236,7 +237,7 @@ const RoundTripBooking = () => {
           "FlightTwo",
           JSON.stringify(combinedPassengerDetails)
         );
-        ChangeSeatStatus(scheduleid, status, seatList)
+        ChangeSeatStatus(SanoshAirlineDetails.SanoshAirlines.apiPath,scheduleid, status, seatList)
           .then((res) => {
             if (mode == "connectingTrip" && isSecondConnectedFlight) {
               setConnectingFlightFirstSelectedSeats([]);
@@ -258,7 +259,7 @@ const RoundTripBooking = () => {
           JSON.stringify(combinedPassengerDetails)
         );
 
-        ChangeSeatStatus(scheduleid, status, seatList)
+        ChangeSeatStatus(SanoshAirlineDetails.SanoshAirlines.apiPath,scheduleid, status, seatList)
           .then((res) => {
             if (mode == "connectingTrip" && isSecondConnectedFlight) {
               setConnectingFlightFirstSelectedSeats([]);

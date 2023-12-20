@@ -10,6 +10,7 @@ import FlightBooking from "./pages/user/FlightBooking";
 import ConfirmBooking from "./pages/user/ConfirmBooking";
 import RoundTripBooking from "./pages/user/RoundTripBooking";
 import BookingHistory from "./pages/user/BookingHistory";
+import NoPage from "./pages/user/NoPage";
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
           </Layout>
         }
       />
+      <Route path="/*" element={<NoPage />} />
     </Routes>
   </Router>
   )

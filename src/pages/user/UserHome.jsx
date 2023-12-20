@@ -183,60 +183,65 @@ const UserHome = () => {
                         }
                       }
                     )
+                    );
+                  })
                   );
-                })
-              );
+                }
+              } catch (error) {
+                console.error(error);
+              }
             }
-          } catch (error) {
-            console.error(error);
-          }
-        }
       )
-    );
-    console.log(connectionSchedules);
-    // setFinalIntegratedConnectingFlights(connectionSchedules); // Uncomment this line if you want to use this data in your application
-    // const combinedData = [
-    //   ...finalIntegratedConnectingFlights,
-    //   ...connectionSchedules,
-    // ];
-    // console.log(combinedData);
-    return connectionSchedules;
-  };
-
-  const searchFlightSchedules = async () => {
-    setConnectingFlightsFirstFlight([]);
-    setConnectingFlightsFirstFlight([]);
-    setDirectFlightsFirstFlight([]);
-    setDirectFlightSecondFlight([]);
-    setDirectFlights([]);
-    setSearched(true);
-    try {
-      setFinalIntegratedConnectingFlights([]);
-      const firstResult = await getIntegratedFlightDetails(
-        SanoshAirlineDetails,
+      );
+      console.log(connectionSchedules);
+      // setFinalIntegratedConnectingFlights(connectionSchedules); // Uncomment this line if you want to use this data in your application
+      // const combinedData = [
+        //   ...finalIntegratedConnectingFlights,
+        //   ...connectionSchedules,
+        // ];
+        // console.log(combinedData);
+        return connectionSchedules;
+      };
+      
+      const searchFlightSchedules = async () => {
+        setConnectingFlightsFirstFlight([]);
+        setConnectingFlightsFirstFlight([]);
+        setDirectFlightsFirstFlight([]);
+        setDirectFlightSecondFlight([]);
+        setDirectFlights([]);
+        setLoaded(false);
+        setSearched(true);
+        setFinalIntegratedConnectingFlights([]);
+    
+    
+        const firstResult = await getIntegratedFlightDetails(
+          SanoshAirlineDetails,
         airlinesapi,
         filters.source,
         filters.destination,
         filters.date
       );
-      console.log(firstResult);
-
-      const secondResult = await getIntegratedFlightDetails(
-        airlinesapi,
-        SanoshAirlineDetails,
+        const secondResult = await getIntegratedFlightDetails(
+          airlinesapi,
+          SanoshAirlineDetails,
         filters.source,
         filters.destination,
         filters.date
       );
-      console.log(secondResult);
+      
       const data = [...firstResult, ...secondResult];
-      // const data = [...firstResult];
-      console.log(data);
       setFinalIntegratedConnectingFlights(data);
       setLoaded(true);
-    } catch (error) {
-      console.error(error);
-    }
+      // const secondResult = await getIntegratedFlightDetails(
+      //   airlinesapi,
+      //   SanoshAirlineDetails,
+      //   filters.source,
+      //   filters.destination,
+      //   filters.date
+      // );
+      // console.log(secondResult);
+      // const data = [...firstResult];
+      // console.log(data);
 
     if (bookingType == "oneway" || bookingType == "roundtrip") {
       if (bookingType == "oneway") {
@@ -476,7 +481,7 @@ const UserHome = () => {
 
   /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// /////////////////////////////////////////////// ///////////////////////////////////////////////
   return (
-    <div className="flex flex-col w-full min-h-screen bg-[#FCF6F5]">
+    <div className="flex flex-col w-full min-h-screen bg-white">
       <div className="flex flex-col gap-4 p-5 w-full items-center justify-center ">
         <div className="flex flex-row gap-2 p-3">
           <input

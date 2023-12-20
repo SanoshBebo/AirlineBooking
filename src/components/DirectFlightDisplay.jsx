@@ -13,7 +13,7 @@ const DirectFlightDisplay = ({data,onClick,mode}) => {
                     onClick={() => onClick(flight, 'singleTrip')}
                   >
                     <p className="flex items-center space-x-2">
-                    <span className="text-lg font-semibold text-purple-600">{flight.FlightName}</span>
+                      <span className="text-lg font-semibold text-purple-600">{flight.FlightName}</span>
                     </p>
                     <p>{flight.SourceAirportName}</p>
                     <p>{flight.DestinationAirportName}</p>

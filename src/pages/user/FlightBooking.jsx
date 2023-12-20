@@ -100,7 +100,10 @@ const FlightBooking = () => {
         GetSeatsForSchedule(SanoshAirlineDetails.SanoshAirlines.apiPath,singleFlight.ScheduleId)
         .then((res) => {
             console.log(res)
-            setSingleFlightScheduleSeats(res);
+            const firstres = res.map((flight) =>
+            capitalizeKeys(flight)
+          );
+            setSingleFlightScheduleSeats(firstres);
           })
           .catch((error) => {
             console.error("Error fetching seats for single flight:", error);
@@ -433,7 +436,11 @@ const FlightBooking = () => {
           )}
           {mode === "connectingTrip" && isFirstConnectedFlight && (
             <div className="text-center">
-              <h1>First Flight Connected Trip</h1>
+              <div className="flex flex-row">
+                <h1>{connectingFlightDetails.firstflight.FlightName}</h1>
+                <h1>{connectingFlightDetails.firstflight.SourceAirportName}</h1>
+                <h1>{connectingFlightDetails.firstflight.DestinationAirportName}</h1>
+              </div>
               <SeatDisplay
                 seatlist={connectingFlightFirstSeatRows}
                 book={() =>
@@ -448,7 +455,6 @@ const FlightBooking = () => {
           )}
           {mode === "connectingTrip" && isSecondConnectedFlight && (
             <div className=" flex flex-col items-start justify-center">
-              <h1 className="text-black font-bold text-xl p-5">Second Flight</h1>
               <SeatDisplay
                 seatlist={connectingFlightSecondSeatRows}
                 book={() =>

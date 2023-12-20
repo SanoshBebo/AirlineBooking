@@ -3,12 +3,13 @@ import {
   GetConnectionTickets,
   MakeBooking,
   MakePartnerBooking,
+  sendConfirmationTicketsViaEmail,
 } from "../../api/Booking";
 import userSlice, { loadUserFromStorage } from "../../redux/userSlice";
 import { ChangeSeatStatus } from "../../api/Seat";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { airlinesapi } from "../../components/Constants";
+import { SanoshAirlineDetails, airlinesapi } from "../../components/Constants";
 import axios from "axios";
 
 const ConfirmBooking = () => {
@@ -35,6 +36,11 @@ const ConfirmBooking = () => {
   const [secondFlightScheduleDetails, setSecondFlightScheduleDetails] =
     useState([]);
   const [isBookingReady, setIsBookingReady] = useState(false);
+  const [timer, setTimer] = useState(300); // Timer set for 5 minutes (300 seconds)
+
+
+
+
 
   useEffect(() => {
     const userdata = JSON.parse(localStorage.getItem("user"));
@@ -110,11 +116,12 @@ const ConfirmBooking = () => {
         console.log(connectingFlightBookingModel);
         const bookingid = await MakeBooking(connectingFlightBookingModel);
         console.log(bookingid);
-
         const result = await GetConnectionTickets(bookingid);
         console.log(result);
-
-        // await sendConfirmationTicketsViaEmail(result);
+        const user = JSON.parse(
+          localStorage.getItem("user")
+        );
+        await sendConfirmationTicketsViaEmail(result,user.Email);
 
         result.map(async (Ticket) => {
           console.log(Ticket)
@@ -139,7 +146,6 @@ const ConfirmBooking = () => {
             throw error;
           }
         });
-
         setIsBookingReady(false);
         sessionStorage.clear("");
         navigate("/BookingHistory");
@@ -147,6 +153,33 @@ const ConfirmBooking = () => {
       makeBooking();
     }
   }, [isBookingReady, connectingFlightBookingModel]);
+
+
+
+
+  useEffect(() => {
+    // Start a timeout when the component mounts
+    const timeoutId = setTimeout(() => {
+      handleCancelBooking(); // Call this function after 5 minutes
+    }, 10000); 
+
+    const handleTabClose = (event) => {
+      event.preventDefault();
+      handleCancelBooking();
+    };
+    window.addEventListener('beforeunload', handleTabClose);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('beforeunload', handleTabClose);
+    };
+
+
+  }, [timer]);
+
+
+
+
 
   const handleConfirmBooking = async () => {
     if (bookingType == "roundtrip") {
@@ -343,6 +376,7 @@ const ConfirmBooking = () => {
         );
         console.log(firstFlightScheduleDetails);
         ChangeSeatStatus(
+          SanoshAirlineDetails.SanoshAirlines.apiPath,
           firstFlightScheduleDetails.ScheduleId,
           "Available",
           firstseat
@@ -371,6 +405,7 @@ const ConfirmBooking = () => {
 
         console.log(firstFlightScheduleDetails);
         ChangeSeatStatus(
+          SanoshAirlineDetails.SanoshAirlines.apiPath,
           firstFlightScheduleDetails.firstflight.ScheduleId,
           "Available",
           firstseats
@@ -382,6 +417,7 @@ const ConfirmBooking = () => {
             console.error(err);
           });
         ChangeSeatStatus(
+          SanoshAirlineDetails.SanoshAirlines.apiPath,
           firstFlightScheduleDetails.secondflight.ScheduleId,
           "Available",
           secondseats
@@ -400,6 +436,7 @@ const ConfirmBooking = () => {
         console.log(secondFlightScheduleDetails);
 
         ChangeSeatStatus(
+          SanoshAirlineDetails.SanoshAirlines.apiPath,
           secondFlightScheduleDetails.ScheduleId,
           "Available",
           secondseat
@@ -427,6 +464,7 @@ const ConfirmBooking = () => {
 
         console.log(secondFlightScheduleDetails);
         ChangeSeatStatus(
+          SanoshAirlineDetails.SanoshAirlines.apiPath,
           secondFlightScheduleDetails.firstflight.ScheduleId,
           "Available",
           firstseats
@@ -438,6 +476,7 @@ const ConfirmBooking = () => {
             console.error(err);
           });
         ChangeSeatStatus(
+          SanoshAirlineDetails.SanoshAirlines.apiPath,
           secondFlightScheduleDetails.secondflight.ScheduleId,
           "Available",
           secondseats
@@ -452,12 +491,34 @@ const ConfirmBooking = () => {
     } else {
       if(flightType == "directflight"){
 
-      }else if(flightType == "connectingFlights")
+console.log(PassengerDetails)
+        const seats = PassengerDetails.map(
+          (passenger) => passenger.SeatNo
+        );
+
+console.log(FlightScheduleDetails)
+        console.log(seats);
+
+        ChangeSeatStatus(
+          SanoshAirlineDetails.SanoshAirlines.apiPath,
+          FlightScheduleDetails.ScheduleId,
+          "Available",
+          seats
+        )
+          .then((res) => {
+            console.log(res);
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+
+
+      }else if(flightType == "connectingFlights"){
 
       console.log(PassengerDetails)
       const passengerDetailList = PassengerDetails.flat();
 
-      console.log(FlightScheduleDetails.firstflight.ScheduleId,FlightScheduleDetails.secondflight.ScheduleId)
+      // console.log(FlightScheduleDetails.firstflight.ScheduleId,FlightScheduleDetails.secondflight.ScheduleId)
      
      
       let halfIndex = Math.floor(passengerDetailList.length / 2);
@@ -495,7 +556,9 @@ const ConfirmBooking = () => {
           console.error(err);
         });
     }
-    navigate("/userhome");
+    // clearTimeout(timeoutId); // Clear the timeout when booking is cancelled
+    // navigate("/userhome");
+  };
   };
 
   return (

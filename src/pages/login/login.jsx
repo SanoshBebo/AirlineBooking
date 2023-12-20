@@ -40,6 +40,8 @@ const Login = () => {
   };
 
   const signIn = async () => {
+    setIsEmailValid(isEmailValidFormat(email));
+
     if (isEmailValid) {
       const loginData = {
         email: email,
@@ -139,7 +141,6 @@ const Login = () => {
             onChange={(e) => {
               const enteredEmail = e.target.value;
               setEmail(enteredEmail);
-              setIsEmailValid(isEmailValidFormat(enteredEmail));
             }}
           />
           {!isEmailValid && (

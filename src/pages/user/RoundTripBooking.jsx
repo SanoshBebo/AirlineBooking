@@ -114,7 +114,9 @@ const RoundTripBooking = () => {
         roundTripDetails[flightno].firstflight.ScheduleId
       )
         .then((res) => {
-          const firstres = res.map((seat) => capitalizeKeys(seat));
+          const firstres = res.map((seat) =>
+          capitalizeKeys(seat)
+        );
           setConnectingFlightFirstScheduleSeats(firstres);
         })
         .catch((error) => {
@@ -129,7 +131,9 @@ const RoundTripBooking = () => {
         roundTripDetails[flightno].secondflight.ScheduleId
       )
         .then((res) => {
-          const firstres = res.map((seat) => capitalizeKeys(seat));
+          const firstres = res.map((seat) =>
+          capitalizeKeys(seat)
+        );
           setConnectingFlightSecondScheduleSeats(firstres);
         })
         .catch((error) => {
@@ -146,7 +150,9 @@ const RoundTripBooking = () => {
         roundTripDetails[flightno].ScheduleId
       )
         .then((res) => {
-          const firstres = res.map((seat) => capitalizeKeys(seat));
+          const firstres = res.map((seat) =>
+          capitalizeKeys(seat)
+        );
           setSingleFlightScheduleSeats(firstres);
         })
         .catch((error) => {

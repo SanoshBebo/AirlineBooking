@@ -54,7 +54,7 @@ export const MakeBooking = async (bookings) => {
 
 export const sendConfirmationTicketsViaEmail = async (tickets,email) => {
     try {
-      const response = await axiosInstance.post(`api/Bookings`, JSON.stringify(tickets), {
+      const response = await axiosInstance.post(`api/Bookings/sendBookingTickets/${email}`, JSON.stringify(tickets), {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -81,6 +81,7 @@ export const sendConfirmationTicketsViaEmail = async (tickets,email) => {
       throw error;
     }
   };
+
 
   export const CancelBooking = async (bookingid) => {
     try {

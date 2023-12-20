@@ -83,6 +83,17 @@ const RoundTripBooking = () => {
     getFlightDetails();
   }, [getUserDetails, refresh]);
 
+  function capitalizeKeys(obj) {
+    const newObj = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+        newObj[capitalizedKey] = obj[key];
+      }
+    }
+    return newObj;
+  }
+
   const getFlightDetails = () => {
     const roundTripDetails = JSON.parse(
       sessionStorage.getItem("RoundTripDetails")
@@ -100,7 +111,10 @@ const RoundTripBooking = () => {
       console.log(roundTripDetails[flightno].secondflight.ScheduleId);
       GetSeatsForSchedule(SanoshAirlineDetails.SanoshAirlines.apiPath,roundTripDetails[flightno].firstflight.ScheduleId)
         .then((res) => {
-          setConnectingFlightFirstScheduleSeats(res);
+          const firstres = res.map((seat) =>
+          capitalizeKeys(seat)
+        );
+          setConnectingFlightFirstScheduleSeats(firstres);
         })
         .catch((error) => {
           console.error(
@@ -111,7 +125,10 @@ const RoundTripBooking = () => {
 
       GetSeatsForSchedule(SanoshAirlineDetails.SanoshAirlines.apiPath,roundTripDetails[flightno].secondflight.ScheduleId)
         .then((res) => {
-          setConnectingFlightSecondScheduleSeats(res);
+          const firstres = res.map((seat) =>
+          capitalizeKeys(seat)
+        );
+          setConnectingFlightSecondScheduleSeats(firstres);
         })
         .catch((error) => {
           console.error(
@@ -124,7 +141,10 @@ const RoundTripBooking = () => {
       setfirstFlightScheduleId(roundTripDetails[flightno].ScheduleId);
       GetSeatsForSchedule(SanoshAirlineDetails.SanoshAirlines.apiPath,roundTripDetails[flightno].ScheduleId)
         .then((res) => {
-          setSingleFlightScheduleSeats(res);
+          const firstres = res.map((seat) =>
+          capitalizeKeys(seat)
+        );
+          setSingleFlightScheduleSeats(firstres);
         })
         .catch((error) => {
           console.error("Error fetching seats for single flight:", error);

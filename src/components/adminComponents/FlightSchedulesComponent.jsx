@@ -40,9 +40,34 @@ const FlightSchedulesComponent = () => {
     flightDuration: "",
     dateTime: null,
   });
+  const [currentPage, setCurrentPage] = useState(1);
 
+  const indexOfLastItem = currentPage * 30;
+  const indexOfFirstItem = indexOfLastItem - 30;
+  const currentSchedules = filteredSchedules.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  const totalPages = Math.ceil(filteredSchedules.length / 30);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
   const [months, setMonths] = useState(1);
   const [monthsList, setMonthsList] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [flightSchedules]);
 
   useEffect(() => {
     // Fetch flight schedules, airports, and flights data
@@ -77,6 +102,7 @@ const FlightSchedulesComponent = () => {
   };
 
   const handleDeleteSelectedSchedules = () => {
+    console.log(selectedScheduleIds)
     if (selectedScheduleIds.length > 0) {
       DeleteSchedules(selectedScheduleIds).then(() => {
         setFlightSchedules((prevSchedules) =>
@@ -379,7 +405,7 @@ const FlightSchedulesComponent = () => {
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4">Filtered Schedules</h2>
         <ul>
-          {filteredSchedules.map((schedule) => (
+          {currentSchedules.map((schedule) => (
             <li
               key={schedule.ScheduleId}
               className="flex items-center justify-between border-b py-2"
@@ -399,6 +425,22 @@ const FlightSchedulesComponent = () => {
             </li>
           ))}
         </ul>
+        <div className="flex justify-between mt-4">
+        <button
+          onClick={handlePrevPage}
+          disabled={currentPage === 1}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Previous Page
+        </button>
+        <button
+          onClick={handleNextPage}
+          disabled={currentPage === totalPages}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Next Page
+        </button>
+      </div>
         <button
           className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
           onClick={handleDeleteSelectedSchedules}

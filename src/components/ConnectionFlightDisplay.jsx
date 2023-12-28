@@ -1,8 +1,12 @@
 import React, { useState } from "react";
+import {
+  calculateArrivalDateTime,
+  formatDate,
+} from "../helper_functions/DateTimeFormatter";
 
 const ConnectionFlightDisplay = ({ data, onClick, mode }) => {
   console.log(data, onClick, mode);
-
+  console.log(data, onClick, mode);
 
   const [clickedIndex, setClickedIndex] = useState(null);
 
@@ -11,118 +15,111 @@ const ConnectionFlightDisplay = ({ data, onClick, mode }) => {
     setClickedIndex(index);
   };
 
-
-
   return (
     <>
-      {mode == "oneway" && (
-        <div className="">
+      {mode && (
+        <div className="w-full">
           {data.map((connection, index) => (
-            <div key={index} className="flex justify-between">
-              <div className="">
-                {connection.SecondFlight.map((flight, i) => (
-                  <div
-                    key={i}
-                    className={`flex flex-row-reverse border p-4 rounded-md cursor-pointer bg-gray-100   hover:bg-gray-100 my-4 transition duration-300 ease-in-out`}
-                    onClick={() =>
-                      onClick(flight, connection.FirstFlight, "connectingTrip")
-                    }
-                  >
-                    <div className="p-5">
-                      <ul>
-                        <li className="font-bold text-blue-600">
-                          {flight.FlightName}
-                        </li>
-                        <li>{flight.SourceAirportName}</li>
-                        <li>{flight.DestinationAirportName}</li>
-                        <li>Flight Duration: {flight.FlightDuration}</li>
-                        <li>Departure Date: {flight.DateTime.split("T")[0]}</li>
-                        <li>Departure Time: {flight.DateTime.split("T")[1]}</li>
-                      </ul>
+            <div key={index} className="">
+              {connection.SecondFlight.map((flight, i) => (
+                <div
+                  key={i}
+                  className={`flex flex-col-reverse border p-10 rounded-md bg-white  hover:bg-gray-100 my-4 transition duration-300 ease-in-out`}
+                >
+                  <div className="flex flex-row">
+                    <div className="-mx-0 bg-red-400 rounded-sm">
+                      <p className="p-2 text-white">ONE STOP</p>
                     </div>
-                    <div className="p-5">
-                      <ul>
-                        <li className="font-bold text-blue-600">
-                          {connection.FirstFlight.FlightName}
-                        </li>
-                        <li>{connection.FirstFlight.SourceAirportName}</li>
-                        <li>{connection.FirstFlight.DestinationAirportName}</li>
-                        <li>
-                          Flight Duration:{" "}
-                          {connection.FirstFlight.FlightDuration}
-                        </li>
-                        <li>
-                          Departure Date:{" "}
-                          {connection.FirstFlight.DateTime.split("T")[0]}
-                        </li>
-                        <li>
-                          Departure Time:{" "}
-                          {connection.FirstFlight.DateTime.split("T")[1]}
-                        </li>
-                      </ul>
+                    <div
+                      className="mx-auto bg-red-400 rounded-sm cursor-pointer "
+                      onClick={() =>
+                        mode == "oneway"
+                          ? onClick(
+                              flight,
+                              connection.FirstFlight,
+                              "connectingTrip"
+                            )
+                          : onClick(connection.FirstFlight, flight)
+                      }
+                    >
+                      <p className={`p-2  text-white ${flight.SeatAvailability == 0 || connection.FirstFlight.SeatAvailability == 0 ? "disabled:" : "visible"}`}>Book Now</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                  <div className="p-5">
+                    <ul>
+                      <p className="flex items-center space-x-2 justify-between">
+                        <span className="text-lg font-semibold text-[#003366]">
+                          {flight.FlightName}
+                        </span>
+                        <div className="mx-auto mt-2 rounded-sm hover:cursor-pointer w-fit">
+                          <p className="text-red-500 p-2 rounded-md">
+                            Seats Left:{" "}
+                            {flight.SeatAvailability}
+                          </p>
+                        </div>
+                      </p>
+                      <div className="flex flex-row justify-between p-2 flex-wrap">
+                        <div className="flex flex-col p-1">
+                          <p>{flight.SourceAirportName}</p>
+                          <p>{formatDate(flight.DateTime)}</p>
+                        </div>
+                        <div className="flex flex-col p-1">
+                          <p>Flight Duration</p>
+                          <p>{flight.FlightDuration}</p>
+                        </div>
+                        <div className="flex flex-col  p-1">
+                          <p>{flight.DestinationAirportName}</p>
+                          <p>
+                            {calculateArrivalDateTime(
+                              flight.DateTime,
+                              flight.FlightDuration
+                            )}
+                          </p>{" "}
+                          {/*Arrival Date Time */}
+                        </div>
+                      </div>
+                     
+                    </ul>
+                  </div>
 
-{mode === "roundtrip" && (
-        <div className="">
-          {data.map((connection, index) => (
-            <div key={index} className="flex flex-col justify-between">
-              {connection.SecondFlight.map((flight, flightIndex) => {
-                // Calculate a unique index for each flight
-                const uniqueIndex = `${index}-${flightIndex}`;
-                return (
-                  <div
-                    key={uniqueIndex}
-                    className={`flex flex-row border p-4 rounded-md cursor-pointer bg-gray-100 hover:bg-gray-200 my-4 transition duration-300 ease-in-out ${
-                      clickedIndex === uniqueIndex ? "bg-green-200" : ""
-                    }`}
-                    onClick={() => {
-                      handleDivClick(uniqueIndex);
-                      onClick(connection.FirstFlight, flight);
-                    }}
-                  >
-                    <div className="p-5">
-                      <ul>
-                        <li className="font-bold text-purple-600">
-                          {flight.FlightName}
-                        </li>
-                        <li>{flight.SourceAirportName}</li>
-                        <li>{flight.DestinationAirportName}</li>
-                        <li>Flight Duration: {flight.FlightDuration}</li>
-                        <li>Departure Date: {flight.DateTime.split("T")[0]}</li>
-                        <li>Departure Time: {flight.DateTime.split("T")[1]}</li>
-                      </ul>
-                    </div>
-                    <div className="p-5">
-                      <ul>
-                        <li className="font-bold text-purple-600">
+                  <div className="p-5">
+                    <ul>
+                      <p className="flex items-center space-x-2 justify-between">
+                        <span className="text-lg font-semibold text-purple-600">
                           {connection.FirstFlight.FlightName}
-                        </li>
-                        <li>{connection.FirstFlight.SourceAirportName}</li>
-                        <li>{connection.FirstFlight.DestinationAirportName}</li>
-                        <li>
-                          Flight Duration:{" "}
-                          {connection.FirstFlight.FlightDuration}
-                        </li>
-                        <li>
-                          Departure Date:{" "}
-                          {connection.FirstFlight.DateTime.split("T")[0]}
-                        </li>
-                        <li>
-                          Departure Time:{" "}
-                          {connection.FirstFlight.DateTime.split("T")[1]}
-                        </li>
-                      </ul>
-                    </div>
+                        </span>
+                        <div className="mx-auto mt-2 bg-rounded-sm hover:cursor-pointer w-fit">
+                          <p className="text-red-500  p-2 rounded-md">
+                            Seats Left:{" "}
+                            {connection.FirstFlight.SeatAvailability}
+                          </p>
+                        </div>
+                      </p>
+                      <div className="flex flex-row justify-between p-2 flex-wrap">
+                        <div className="flex flex-col">
+                          <p>{connection.FirstFlight.SourceAirportName}</p>
+                          <p>{formatDate(connection.FirstFlight.DateTime)}</p>
+                        </div>
+                        <div className="flex flex-col">
+                          <p>Flight Duration</p>
+                          <p>{connection.FirstFlight.FlightDuration}</p>
+                        </div>
+                        <div className="flex flex-col">
+                          <p>{connection.FirstFlight.DestinationAirportName}</p>
+                          <p>
+                            {calculateArrivalDateTime(
+                              connection.FirstFlight.DateTime,
+                              connection.FirstFlight.FlightDuration
+                            )}
+                          </p>{" "}
+                          {/*Arrival Date Time */}
+                        </div>
+                      </div>
+                       
+                    </ul>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           ))}
         </div>

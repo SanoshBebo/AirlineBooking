@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  GetBookingIdDetails,
   GetConnectionTickets,
   MakeBooking,
   MakePartnerBooking,
@@ -11,6 +12,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { SanoshAirlineDetails, airlinesapi } from "../../components/Constants";
 import axios from "axios";
+import axiosIntegratedInstance from "../../api/axiosIntegratedInstance";
 
 const ConfirmBooking = () => {
   const [PassengerDetails, setPassengerDetails] = useState([]);
@@ -36,11 +38,7 @@ const ConfirmBooking = () => {
   const [secondFlightScheduleDetails, setSecondFlightScheduleDetails] =
     useState([]);
   const [isBookingReady, setIsBookingReady] = useState(false);
-  const [timer, setTimer] = useState(300); // Timer set for 5 minutes (300 seconds)
-
-
-
-
+  const [remainingTime, setRemainingTime] = useState(5 * 60); // 5 minutes in seconds
 
   useEffect(() => {
     const userdata = JSON.parse(localStorage.getItem("user"));
@@ -116,70 +114,101 @@ const ConfirmBooking = () => {
         console.log(connectingFlightBookingModel);
         const bookingid = await MakeBooking(connectingFlightBookingModel);
         console.log(bookingid);
-        const result = await GetConnectionTickets(bookingid);
-        console.log(result);
-        const user = JSON.parse(
-          localStorage.getItem("user")
-        );
-        await sendConfirmationTicketsViaEmail(result,user.Email);
 
-        result.map(async (Ticket) => {
-          console.log(Ticket)
-          const airline = airlinesapi[Ticket.AirlineName];
-          console.log(airline.apiPath);
-          const modifiedTicket = { ...Ticket, AirlineName:"SanoshAirlines"}
-          console.log(`${airline.apiPath}Integration/partnerbooking`);
+        const ticketResults = await GetBookingIdDetails(bookingid);
 
-          try {
-
-            const response = await axios.post(
-              `${airline.apiPath}Integration/partnerbooking`,
-              JSON.stringify([modifiedTicket]),
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-          } catch (error) {
-            console.error(error);
-            throw error;
-          }
+        console.log(ticketResults);
+        const tickets = ticketResults[0].Tickets.map((ticket) => {
+          return {
+            TicketNo: ticket.Ticket.TicketNo,
+            BookingId: ticket.Ticket.BookingId,
+            FlightName: ticket?.FlightSchedule?.FlightName
+              ? ticket?.FlightSchedule?.FlightName
+              : ticket?.Ticket?.FlightName,
+            SourceAirportId: ticket.SourceAirport.AirportName,
+            DestinationAirportId: ticket.DestinationAirport.AirportName,
+            SeatNo: ticket.Ticket.SeatNo,
+            Name: ticket.Ticket.Name,
+            Age: ticket.Ticket.Age,
+            Gender: ticket.Ticket.Gender,
+            DateTime: ticket?.FlightSchedule?.DateTime
+              ? ticket?.FlightSchedule?.DateTime
+              : ticket?.Ticket?.DateTime,
+          };
         });
+
+        console.log(tickets);
+
+        const result = await GetConnectionTickets(bookingid);
+
+        console.log(result);
+
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        await sendConfirmationTicketsViaEmail(tickets, user.Email);
+
+        result &&
+          result.map(async (Ticket) => {
+            console.log(Ticket);
+            const airline = airlinesapi[Ticket.AirlineName];
+            console.log(airline.apiPath);
+            const modifiedTicket = { ...Ticket, AirlineName: "SanoshAirlines" };
+            console.log(`${airline.apiPath}Integration/partnerbooking`);
+
+            try {
+              const response = await axiosIntegratedInstance.post(
+                `${airline.apiPath}Integration/partnerbooking`,
+                JSON.stringify([modifiedTicket]),
+                {
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+            } catch (error) {
+              console.error(error);
+              throw error;
+            }
+          });
         setIsBookingReady(false);
-        sessionStorage.clear("");
+        sessionStorage.removeItem("connectingFlights")
+        sessionStorage.removeItem("ConnectingFlightBookingInfo")
+        sessionStorage.removeItem("directFlight")
         navigate("/BookingHistory");
       };
       makeBooking();
     }
   }, [isBookingReady, connectingFlightBookingModel]);
 
-
-
-
   useEffect(() => {
-    // Start a timeout when the component mounts
-    const timeoutId = setTimeout(() => {
-      handleCancelBooking(); // Call this function after 5 minutes
-    }, 10000); 
+    const timer = setInterval(() => {
+      setRemainingTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
+    }, 1000);
 
-    const handleTabClose = (event) => {
-      event.preventDefault();
+    window.onbeforeunload = () => {
       handleCancelBooking();
     };
-    window.addEventListener('beforeunload', handleTabClose);
 
     return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('beforeunload', handleTabClose);
+      clearInterval(timer);
+      window.onbeforeunload = null;
     };
+  }, []);
 
+  useEffect(() => {
+    if (remainingTime === 0) {
+      handleCancelBooking();
+    }
+  }, [remainingTime]);
 
-  }, [timer]);
-
-
-
-
+  const formatTime = (timeInSeconds) => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = timeInSeconds % 60;
+    const formattedTime = `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+    return formattedTime;
+  };
 
   const handleConfirmBooking = async () => {
     if (bookingType == "roundtrip") {
@@ -220,7 +249,7 @@ const ConfirmBooking = () => {
           FlightName: firstFlightScheduleDetails.firstflight.FlightName,
           SourceAirportId:
             firstFlightScheduleDetails.firstflight.SourceAirportId,
-          AirlineName: "SanoshAirlines",
+          AirlineName: firstFlightScheduleDetails.firstflight.airlineName,
         };
 
         let secondFlightBookingModel = {
@@ -235,7 +264,7 @@ const ConfirmBooking = () => {
           FlightName: firstFlightScheduleDetails.secondflight.FlightName,
           SourceAirportId:
             firstFlightScheduleDetails.secondflight.SourceAirportId,
-          AirlineName: "SanoshAirlines",
+          AirlineName: firstFlightScheduleDetails.secondflight.airlineName,
         };
         let combined = [firstFlightBookingModel, secondFlightBookingModel];
         setConnectingFlightBookingModel(combined);
@@ -283,7 +312,7 @@ const ConfirmBooking = () => {
           FlightName: secondFlightScheduleDetails.firstflight.FlightName,
           SourceAirportId:
             secondFlightScheduleDetails.firstflight.SourceAirportId,
-          AirlineName: "SanoshAirlines",
+          AirlineName: secondFlightScheduleDetails.firstflight.airlineName,
         };
 
         let secondFlightBookingModel = {
@@ -298,7 +327,7 @@ const ConfirmBooking = () => {
           FlightName: secondFlightScheduleDetails.secondflight.FlightName,
           SourceAirportId:
             secondFlightScheduleDetails.secondflight.SourceAirportId,
-          AirlineName: "SanoshAirlines",
+          AirlineName: secondFlightScheduleDetails.secondflight.airlineName,
         };
         let combined = [firstFlightBookingModel, secondFlightBookingModel];
         setConnectingFlightBookingModel((prevState) => [
@@ -489,14 +518,11 @@ const ConfirmBooking = () => {
           });
       }
     } else {
-      if(flightType == "directflight"){
+      if (flightType == "directflight") {
+        console.log(PassengerDetails);
+        const seats = PassengerDetails.map((passenger) => passenger.SeatNo);
 
-console.log(PassengerDetails)
-        const seats = PassengerDetails.map(
-          (passenger) => passenger.SeatNo
-        );
-
-console.log(FlightScheduleDetails)
+        console.log(FlightScheduleDetails);
         console.log(seats);
 
         ChangeSeatStatus(
@@ -511,24 +537,15 @@ console.log(FlightScheduleDetails)
           .catch((err) => {
             console.error(err);
           });
+      } else if (flightType == "connectingFlights") {
+        console.log(PassengerDetails);
+        const passengerDetailList = PassengerDetails.flat();
 
+        // console.log(FlightScheduleDetails.firstflight.ScheduleId,FlightScheduleDetails.secondflight.ScheduleId)
 
-      }else if(flightType == "connectingFlights"){
-
-      console.log(PassengerDetails)
-      const passengerDetailList = PassengerDetails.flat();
-
-      // console.log(FlightScheduleDetails.firstflight.ScheduleId,FlightScheduleDetails.secondflight.ScheduleId)
-     
-     
-      let halfIndex = Math.floor(passengerDetailList.length / 2);
-        let firstHalfPassengerDetails = passengerDetailList.slice(
-          0,
-          halfIndex
-        );
-        let secondHalfPassengerDetails =
-        passengerDetailList.slice(halfIndex);
-
+        let halfIndex = Math.floor(passengerDetailList.length / 2);
+        let firstHalfPassengerDetails = passengerDetailList.slice(0, halfIndex);
+        let secondHalfPassengerDetails = passengerDetailList.slice(halfIndex);
 
         const firstseats = firstHalfPassengerDetails.map(
           (passenger) => passenger.SeatNo
@@ -537,32 +554,42 @@ console.log(FlightScheduleDetails)
           (passenger) => passenger.SeatNo
         );
 
-          console.log(firstseats)
-          console.log(secondseats)
+        console.log(firstseats);
+        console.log(secondseats);
 
-      ChangeSeatStatus(FlightScheduleDetails.firstflight.apiPath,FlightScheduleDetails.firstflight.ScheduleId, "Available", firstseats)
-        .then((res) => {
-          console.log(res);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
+        ChangeSeatStatus(
+          FlightScheduleDetails.firstflight.apiPath,
+          FlightScheduleDetails.firstflight.ScheduleId,
+          "Available",
+          firstseats
+        )
+          .then((res) => {
+            console.log(res);
+          })
+          .catch((err) => {
+            console.error(err);
+          });
 
-      ChangeSeatStatus(FlightScheduleDetails.secondflight.apiPath,FlightScheduleDetails.secondflight.ScheduleId, "Available", secondseats)
-        .then((res) => {
-          console.log(res);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
+        ChangeSeatStatus(
+          FlightScheduleDetails.secondflight.apiPath,
+          FlightScheduleDetails.secondflight.ScheduleId,
+          "Available",
+          secondseats
+        )
+          .then((res) => {
+            console.log(res);
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
     }
-    // clearTimeout(timeoutId); // Clear the timeout when booking is cancelled
-    // navigate("/userhome");
-  };
+    navigate("/userhome");
   };
 
   return (
     <div className="m-5 flex flex-col">
+      <p>Remaining Time: {formatTime(remainingTime)}</p>
       <div>
         <ul className="divide-y divide-gray-300">
           {flightType === "directflight" &&

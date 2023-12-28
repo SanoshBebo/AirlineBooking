@@ -2,15 +2,15 @@ import React, { useEffect, useState } from "react";
 import GetPassengerInfo from "../../components/GetPassengerInfo";
 import SeatDisplay from "../../components/SeatDisplay";
 import { useNavigate } from "react-router";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import { ChangeSeatStatus, GetSeatsForSchedule } from "../../api/Seat";
 import { SanoshAirlineDetails } from "../../components/Constants";
 
 const RoundTripBooking = () => {
   const [flightno, setflightno] = useState(0);
   const [mode, setMode] = useState("");
-  const [hasBookedFirstFlight, setHasBookedFirstFlight] = useState(false);
-  const [hasBookedReturnFlight, setHasBookedReturnFlight] = useState(false);
+  const [connectingFlightDetails, setConnectingFlightDetails] = useState([]);
+  const [directFlightDetail, setDirectFlightDetail] = useState([]);
 
   const [firstFlightScheduleId, setfirstFlightScheduleId] = useState();
   const [firstConnectedFlightScheduleId, setFirstConnectedFlightScheduleId] =
@@ -107,10 +107,13 @@ const RoundTripBooking = () => {
       setSecondConnectedFlightScheduleId(
         roundTripDetails[flightno].secondflight.ScheduleId
       );
+      setConnectingFlightDetails(roundTripDetails[flightno]);
       console.log(roundTripDetails[flightno].firstflight.ScheduleId);
+      console.log(roundTripDetails[flightno].firstflight.apiPath);
       console.log(roundTripDetails[flightno].secondflight.ScheduleId);
+      console.log(roundTripDetails[flightno].secondflight.apiPath);
       GetSeatsForSchedule(
-        SanoshAirlineDetails.SanoshAirlines.apiPath,
+        roundTripDetails[flightno].firstflight.apiPath,
         roundTripDetails[flightno].firstflight.ScheduleId
       )
         .then((res) => {
@@ -127,7 +130,7 @@ const RoundTripBooking = () => {
         });
 
       GetSeatsForSchedule(
-        SanoshAirlineDetails.SanoshAirlines.apiPath,
+        roundTripDetails[flightno].secondflight.apiPath,
         roundTripDetails[flightno].secondflight.ScheduleId
       )
         .then((res) => {
@@ -145,8 +148,20 @@ const RoundTripBooking = () => {
     } else {
       setMode("singleTrip");
       setfirstFlightScheduleId(roundTripDetails[flightno].ScheduleId);
+      setDirectFlightDetail(roundTripDetails[flightno]);
+      let apipath = "";
+      if(roundTripDetails[flightno]?.apiPath){
+          apipath = roundTripDetails[flightno]?.apiPath
+      }
+      else{
+        apipath = SanoshAirlineDetails.SanoshAirlines.apiPath
+      }
+
+      console.log(apipath);
+
+
       GetSeatsForSchedule(
-        SanoshAirlineDetails.SanoshAirlines.apiPath,
+        apipath,
         roundTripDetails[flightno].ScheduleId
       )
         .then((res) => {
@@ -192,6 +207,23 @@ const RoundTripBooking = () => {
   ]);
 
   const bookFlight = (scheduleid, status, seatList) => {
+
+    if(passengerSeatSelections.length == 0){
+      toast.error("Please selects your seats");
+      return;
+    }
+
+    const passengersWithSeats = userDetails.filter((passenger, index) => {
+      return passengerSeatSelections[index];
+    });
+
+    console.log(passengersWithSeats)
+  
+    if (passengersWithSeats.length !== userDetails.length) {
+      toast.error("Please select seats for all passengers.");
+      return; // Exit the function if any passenger has not selected a seat
+    }
+
     if (mode == "singleTrip") {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
         ...passenger,
@@ -485,7 +517,23 @@ const RoundTripBooking = () => {
         <div className="w-3/4">
           {getUserDetails && (
             <div className="flex justify-center items-center">
+
               {mode === "singleTrip" && (
+                <div>
+                  <div className="flex flex-col py-10">
+                    <h1 className="text-3xl font-bold mb-4">
+                      {directFlightDetail.FlightName}
+                    </h1>
+                    <div className="flex flex-row space-x-4">
+                      <h1 className="text-lg font-semibold">
+                        {directFlightDetail.SourceAirportName}
+                      </h1>
+                      <span className="text-lg font-semibold mx-2">-</span>
+                      <h1 className="text-lg font-semibold">
+                        {directFlightDetail.DestinationAirportName}
+                      </h1>
+                    </div>
+                  </div>
                 <SeatDisplay
                   seatlist={singleFlightSeatRows}
                   book={() =>
@@ -493,13 +541,27 @@ const RoundTripBooking = () => {
                       firstFlightScheduleId,
                       "Booked",
                       singleFlightSelectedSeats
-                    )
-                  }
-                />
+                      )
+                    }
+                    />
+                    </div>
               )}
               {mode === "connectingTrip" && isFirstConnectedFlight && (
-                <div className="text-center">
-                  <h1>First Flight Connected Trip</h1>
+                <div className=" flex flex-col justify-center items-center text-center">
+                  <div className="flex flex-col py-10">
+                    <h1 className="text-3xl font-bold mb-4">
+                      {connectingFlightDetails.firstflight.FlightName}
+                    </h1>
+                    <div className="flex flex-row space-x-4">
+                      <h1 className="text-lg font-semibold">
+                        {connectingFlightDetails.firstflight.SourceAirportName}
+                      </h1>
+                      <span className="text-lg font-semibold mx-2">-</span>
+                      <h1 className="text-lg font-semibold">
+                        {connectingFlightDetails.firstflight.DestinationAirportName}
+                      </h1>
+                    </div>
+                  </div>
                   <SeatDisplay
                     seatlist={connectingFlightFirstSeatRows}
                     book={() =>
@@ -513,10 +575,21 @@ const RoundTripBooking = () => {
                 </div>
               )}
               {mode === "connectingTrip" && isSecondConnectedFlight && (
-                <div className=" flex flex-col items-start justify-center">
-                  <h1 className="text-black font-bold text-xl p-5">
-                    Second Flight
-                  </h1>
+                 <div className=" flex flex-col items-center justify-center text-center">
+                 <div className="flex flex-col py-10">
+                   <h1 className="text-3xl font-bold mb-4">
+                     {connectingFlightDetails.secondflight.FlightName}
+                   </h1>
+                   <div className="flex flex-row space-x-4">
+                     <h1 className="text-lg font-semibold">
+                       {connectingFlightDetails.secondflight.SourceAirportName}
+                     </h1>
+                     <span className="text-lg font-semibold mx-2">-</span>
+                     <h1 className="text-lg font-semibold">
+                       {connectingFlightDetails.secondflight.DestinationAirportName}
+                     </h1>
+                   </div>
+                 </div>
                   <SeatDisplay
                     seatlist={connectingFlightSecondSeatRows}
                     book={() =>

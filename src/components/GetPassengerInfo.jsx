@@ -50,7 +50,7 @@ const GetPassengerInfo = ({ userDetails }) => {
   
   const renderPassengerInputs = () => {
     return passengers.map((passenger, index) => (
-      <div key={index} className="my-4 p-4 border rounded shadow-lg bg-white">
+      <div key={index} className="my-4 p-4 border rounded shadow-lg bg-gradient-to-r from-white to-orange-300">
         <h3 className="text-lg font-semibold mb-4">Passenger {index + 1}</h3>
         <div className="mb-4">
           <input
@@ -95,7 +95,7 @@ const GetPassengerInfo = ({ userDetails }) => {
   };
 
   return (
-    <div className="p-4 bg-[#FCF6F5]">
+    <div className="p-4 min-h-[80vh] bg-gray-50">
       <h2 className="text-2xl font-bold mb-4">Enter Passenger Information</h2>
       {renderPassengerInputs()}
       <button

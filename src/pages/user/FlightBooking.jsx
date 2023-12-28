@@ -37,11 +37,8 @@ const FlightBooking = () => {
     connectingFlightFirstScheduleSeats,
     setConnectingFlightFirstScheduleSeats,
   ] = useState([]);
-  const [
-    connectingFlightDetails,
-    setConnectingFlightDetails,
-  ] = useState([]);
- 
+  const [connectingFlightDetails, setConnectingFlightDetails] = useState([]);
+
   const [
     connectingFlightSecondScheduleSeats,
     setConnectingFlightSecondScheduleSeats,
@@ -78,7 +75,7 @@ const FlightBooking = () => {
   const [refresh, setRefresh] = useState(true);
   const [isFirstConnectedFlight, setIsFirstConnectedFlight] = useState(true);
   const [isSecondConnectedFlight, setIsSecondConnectedFlight] = useState(false);
-
+  const [directFlightDetails, setDirectFlightDetail] = useState([]);
 
   function capitalizeKeys(obj) {
     const newObj = {};
@@ -96,13 +93,15 @@ const FlightBooking = () => {
       const directFlightDetails = sessionStorage.getItem("directflight");
       if (directFlightDetails) {
         const singleFlight = JSON.parse(directFlightDetails);
+        setDirectFlightDetail(singleFlight);
         setfirstFlightScheduleId(singleFlight.ScheduleId);
-        GetSeatsForSchedule(SanoshAirlineDetails.SanoshAirlines.apiPath,singleFlight.ScheduleId)
-        .then((res) => {
-            console.log(res)
-            const firstres = res.map((flight) =>
-            capitalizeKeys(flight)
-          );
+        GetSeatsForSchedule(
+          SanoshAirlineDetails.SanoshAirlines.apiPath,
+          singleFlight.ScheduleId
+        )
+          .then((res) => {
+            console.log(res);
+            const firstres = res.map((flight) => capitalizeKeys(flight));
             setSingleFlightScheduleSeats(firstres);
           })
           .catch((error) => {
@@ -121,30 +120,36 @@ const FlightBooking = () => {
         setSecondConnectedFlightScheduleId(
           connectingFlights.secondflight.ScheduleId
         );
-          console.log(connectingFlights.firstflight.apiPath)
-          console.log(connectingFlights.secondflight.apiPath)
-        GetSeatsForSchedule(connectingFlights.firstflight.apiPath,connectingFlights.firstflight.ScheduleId)
+        console.log(connectingFlights.firstflight.apiPath);
+        console.log(connectingFlights.secondflight.apiPath);
+        GetSeatsForSchedule(
+          connectingFlights.firstflight.apiPath,
+          connectingFlights.firstflight.ScheduleId
+        )
           .then((res) => {
-            console.log(res)
+            console.log(res);
             const seats = res.map((seat) => capitalizeKeys(seat));
-            console.log(seats)
+            console.log(seats);
             setConnectingFlightFirstScheduleSeats(seats);
           })
           .catch((error) => {
             console.error(
               "Error fetching seats for first connecting flight:",
               error
-              );
-            });
-            
-            GetSeatsForSchedule(connectingFlights.secondflight.apiPath,connectingFlights.secondflight.ScheduleId)
-            .then((res) => {
-              console.log(res)
-              const seats = res.map((seat) => capitalizeKeys(seat));
-              console.log(seats)
-              setConnectingFlightSecondScheduleSeats(seats);
-            })
-            .catch((error) => {
+            );
+          });
+
+        GetSeatsForSchedule(
+          connectingFlights.secondflight.apiPath,
+          connectingFlights.secondflight.ScheduleId
+        )
+          .then((res) => {
+            console.log(res);
+            const seats = res.map((seat) => capitalizeKeys(seat));
+            console.log(seats);
+            setConnectingFlightSecondScheduleSeats(seats);
+          })
+          .catch((error) => {
             console.error(
               "Error fetching seats for second connecting flight:",
               error
@@ -197,7 +202,6 @@ const FlightBooking = () => {
       }
       seatMap[row][col] = seat;
     });
-
 
     for (let i = 1; i <= 17; i++) {
       const formattedRow = seatOrder.map((row, index) => {
@@ -253,7 +257,7 @@ const FlightBooking = () => {
           return prevSelectedSeats;
         }
       });
-    } else if (mode === "connectingTrip") { 
+    } else if (mode === "connectingTrip") {
       if (isFirstConnectedFlight) {
         setConnectingFlightFirstSelectedSeats((prevSelectedSeats) => {
           if (prevSelectedSeats.includes(seat.SeatNumber)) {
@@ -318,14 +322,39 @@ const FlightBooking = () => {
     }
   };
 
-
   const handlePassengerSeatSelection = (index, selectedSeat) => {
     const updatedSelections = [...passengerSeatSelections];
-    updatedSelections[index] = selectedSeat;
-    setPassengerSeatSelections(updatedSelections);  
+
+    if (!updatedSelections.includes(selectedSeat)) {
+      updatedSelections[index] = selectedSeat;
+      setPassengerSeatSelections(updatedSelections);
+    } else {
+      toast.error("Cannot select the same seat for different passengers", {
+        autoClose: 1000, // Set the duration in milliseconds (1 second in this case)
+      });
+    }
   };
 
   const bookFlight = (scheduleid, status, seatList) => {
+console.log(userDetails)
+
+    if(passengerSeatSelections.length == 0){
+      toast.error("Please selects your seats");
+      return;
+    }
+
+    const passengersWithSeats = userDetails.filter((passenger, index) => {
+      return passengerSeatSelections[index];
+    });
+
+    console.log(passengersWithSeats)
+  
+    if (passengersWithSeats.length !== userDetails.length) {
+      toast.error("Please select seats for all passengers.");
+      return; // Exit the function if any passenger has not selected a seat
+    }
+
+
     if (mode == "singleTrip") {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
         ...passenger,
@@ -335,20 +364,23 @@ const FlightBooking = () => {
         "SingleFlightBookingInfo",
         JSON.stringify(updatedPassengerDetails)
       );
-      
-      ChangeSeatStatus(SanoshAirlineDetails.SanoshAirlines.apiPath,scheduleid, status, seatList)
-      .then((res) => {
-        if (mode == "singleTrip") {
-          setSingleFlightSelectedSeats([]);
-          setRefresh(!refresh);
-          navigate("/FlightBooking/ConfirmBooking");
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-      });
 
-
+      ChangeSeatStatus(
+        SanoshAirlineDetails.SanoshAirlines.apiPath,
+        scheduleid,
+        status,
+        seatList
+      )
+        .then((res) => {
+          if (mode == "singleTrip") {
+            setSingleFlightSelectedSeats([]);
+            setRefresh(!refresh);
+            navigate("/FlightBooking/ConfirmBooking");
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     } else if (mode == "connectingTrip" && isFirstConnectedFlight) {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
         ...passenger,
@@ -358,17 +390,22 @@ const FlightBooking = () => {
       setConnectingFlightPassengerScheduleDetails(detail);
       console.log(connectingFlightDetails.firstflight.apiPath);
 
-      ChangeSeatStatus(connectingFlightDetails.firstflight.apiPath,scheduleid, status, seatList)
-      .then((res) => {
-        if (mode == "connectingTrip" && isFirstConnectedFlight) {
-          setIsSecondConnectedFlight(!isSecondConnectedFlight);
-          setIsFirstConnectedFlight(!isFirstConnectedFlight);
-          setRefresh(!refresh);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+      ChangeSeatStatus(
+        connectingFlightDetails.firstflight.apiPath,
+        scheduleid,
+        status,
+        seatList
+      )
+        .then((res) => {
+          if (mode == "connectingTrip" && isFirstConnectedFlight) {
+            setIsSecondConnectedFlight(!isSecondConnectedFlight);
+            setIsFirstConnectedFlight(!isFirstConnectedFlight);
+            setRefresh(!refresh);
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     } else if (mode == "connectingTrip" && isSecondConnectedFlight) {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
         ...passenger,
@@ -385,24 +422,32 @@ const FlightBooking = () => {
         "ConnectingFlightBookingInfo",
         JSON.stringify(combinedPassengerDetails)
       );
-      console.log(connectingFlightDetails.secondflight.apiPath,scheduleid, status, seatList);
-      ChangeSeatStatus(connectingFlightDetails.secondflight.apiPath,scheduleid, status, seatList)
-      .then((res) => {
-        if (mode == "connectingTrip" && isSecondConnectedFlight) {
-          setConnectingFlightFirstSelectedSeats([]);
-          setConnectingFlightSecondSelectedSeats([]);
-          setIsSecondConnectedFlight(!isSecondConnectedFlight);
-          setIsFirstConnectedFlight(!isFirstConnectedFlight);
-          setRefresh(!refresh);
-          navigate("/FlightBooking/ConfirmBooking");
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+      console.log(
+        connectingFlightDetails.secondflight.apiPath,
+        scheduleid,
+        status,
+        seatList
+      );
+      ChangeSeatStatus(
+        connectingFlightDetails.secondflight.apiPath,
+        scheduleid,
+        status,
+        seatList
+      )
+        .then((res) => {
+          if (mode == "connectingTrip" && isSecondConnectedFlight) {
+            setConnectingFlightFirstSelectedSeats([]);
+            setConnectingFlightSecondSelectedSeats([]);
+            setIsSecondConnectedFlight(!isSecondConnectedFlight);
+            setIsFirstConnectedFlight(!isFirstConnectedFlight);
+            setRefresh(!refresh);
+            navigate("/FlightBooking/ConfirmBooking");
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     }
-
-      
   };
 
   return (
@@ -418,95 +463,142 @@ const FlightBooking = () => {
         />
       )}
       <div className="flex flex-row p-10">
-      <div className="w-3/4">
-
-      {getUserDetails && (
-        <div className="flex justify-center items-center">
-          {mode === "singleTrip" && (
-            <SeatDisplay
-              seatlist={singleFlightSeatRows}
-              book={() =>
-                bookFlight(
-                  firstFlightScheduleId,
-                  "Booked",
-                  singleFlightSelectedSeats
-                )
-              }
-            />
-          )}
-          {mode === "connectingTrip" && isFirstConnectedFlight && (
-            <div className="text-center">
-              <div className="flex flex-row">
-                <h1>{connectingFlightDetails.firstflight.FlightName}</h1>
-                <h1>{connectingFlightDetails.firstflight.SourceAirportName}</h1>
-                <h1>{connectingFlightDetails.firstflight.DestinationAirportName}</h1>
-              </div>
-              <SeatDisplay
-                seatlist={connectingFlightFirstSeatRows}
-                book={() =>
-                  bookFlight(
-                    firstConnectedFlightScheduleId,
-                    "Booked",
-                    connectingFlightFirstSelectedSeats
-                  )
-                }
-              />
-            </div>
-          )}
-          {mode === "connectingTrip" && isSecondConnectedFlight && (
-            <div className=" flex flex-col items-start justify-center">
-              <SeatDisplay
-                seatlist={connectingFlightSecondSeatRows}
-                book={() =>
-                  bookFlight(
-                    secondConnectedFlightScheduleId,
-                    "Booked",
-                    connectingFlightSecondSelectedSeats
-                  )
-                }
-              />
+        <div className="w-3/4">
+          {getUserDetails && (
+            <div className="flex justify-center items-center">
+              {mode === "singleTrip" && (
+                <div>
+                  <div className="flex flex-col py-10">
+                    <h1 className="text-3xl font-bold mb-4">
+                      {directFlightDetails.FlightName}
+                    </h1>
+                    <div className="flex flex-row space-x-4">
+                      <h1 className="text-lg font-semibold">
+                        {directFlightDetails.SourceAirportName}
+                      </h1>
+                      <span className="text-lg font-semibold mx-2">-</span>
+                      <h1 className="text-lg font-semibold">
+                        {directFlightDetails.DestinationAirportName}
+                      </h1>
+                    </div>
+                  </div>
+                  <SeatDisplay
+                    seatlist={singleFlightSeatRows}
+                    book={() =>
+                      bookFlight(
+                        firstFlightScheduleId,
+                        "Booked",
+                        singleFlightSelectedSeats
+                      )
+                    }
+                  />
+                </div>
+              )}
+              {mode === "connectingTrip" && isFirstConnectedFlight && (
+                <div className=" flex flex-col justify-center items-center text-center">
+                  
+                  <div className="flex flex-col py-10">
+                    <h1 className="text-3xl font-bold mb-4">
+                      {connectingFlightDetails.firstflight.FlightName}
+                    </h1>
+                    <div className="flex flex-row space-x-4">
+                      <h1 className="text-lg font-semibold">
+                        {connectingFlightDetails.firstflight.SourceAirportName}
+                      </h1>
+                      <span className="text-lg font-semibold mx-2">-</span>
+                      <h1 className="text-lg font-semibold">
+                        {connectingFlightDetails.firstflight.DestinationAirportName}
+                      </h1>
+                    </div>
+                  </div>
+                  <SeatDisplay
+                    seatlist={connectingFlightFirstSeatRows}
+                    book={() =>
+                      bookFlight(
+                        firstConnectedFlightScheduleId,
+                        "Booked",
+                        connectingFlightFirstSelectedSeats
+                      )
+                    }
+                  />
+                </div>
+              )}
+              {mode === "connectingTrip" && isSecondConnectedFlight && (
+                <div className=" flex flex-col items-center justify-center text-center">
+                  <div className="flex flex-col py-10">
+                    <h1 className="text-3xl font-bold mb-4">
+                      {connectingFlightDetails.secondflight.FlightName}
+                    </h1>
+                    <div className="flex flex-row space-x-4">
+                      <h1 className="text-lg font-semibold">
+                        {connectingFlightDetails.secondflight.SourceAirportName}
+                      </h1>
+                      <span className="text-lg font-semibold mx-2">-</span>
+                      <h1 className="text-lg font-semibold">
+                        {connectingFlightDetails.secondflight.DestinationAirportName}
+                      </h1>
+                    </div>
+                  </div>
+                  <SeatDisplay
+                    seatlist={connectingFlightSecondSeatRows}
+                    book={() =>
+                      bookFlight(
+                        secondConnectedFlightScheduleId,
+                        "Booked",
+                        connectingFlightSecondSelectedSeats
+                      )
+                    }
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
-      </div>
 
-      <div className="w-1/2 mx-auto"> {/* Set width to 50% and center the content */}
-  {getUserDetails &&
-    userDetails.map((passenger, index) => (
-      <div key={index} className="mb-4 p-5">
-        <p className="font-semibold">{passenger.Name}'s Seat:</p>
-        <select
-          value={passengerSeatSelections[index] || ""}
-          onChange={(e) => handlePassengerSeatSelection(index, e.target.value)}
-          className="block w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-        >
-          <option value="">Select Seat</option>
-          {mode === "singleTrip" &&
-            singleFlightSelectedSeats.map((seat, seatIndex) => (
-              <option key={seatIndex} value={seat}>
-                {seat}
-              </option>
+        <div className="w-1/2 mx-auto">
+          {" "}
+          {/* Set width to 50% and center the content */}
+          {getUserDetails &&
+            userDetails.map((passenger, index) => (
+              <div key={index} className="mb-4 p-5">
+                <p className="font-semibold">{passenger.Name}'s Seat:</p>
+                <select
+                  value={passengerSeatSelections[index] || ""}
+                  onChange={(e) =>
+                    handlePassengerSeatSelection(index, e.target.value)
+                  }
+                  className="block w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Seat</option>
+                  {mode === "singleTrip" &&
+                    singleFlightSelectedSeats.map((seat, seatIndex) => (
+                      <option key={seatIndex} value={seat}>
+                        {seat}
+                      </option>
+                    ))}
+                  {mode === "connectingTrip" &&
+                    isFirstConnectedFlight &&
+                    connectingFlightFirstSelectedSeats.map(
+                      (seat, seatIndex) => (
+                        <option key={seatIndex} value={seat}>
+                          {seat}
+                        </option>
+                      )
+                    )}
+                  {mode === "connectingTrip" &&
+                    isSecondConnectedFlight &&
+                    connectingFlightSecondSelectedSeats.map(
+                      (seat, seatIndex) => (
+                        <option key={seatIndex} value={seat}>
+                          {seat}
+                        </option>
+                      )
+                    )}
+                </select>
+              </div>
             ))}
-          {mode === "connectingTrip" &&
-            isFirstConnectedFlight &&
-            connectingFlightFirstSelectedSeats.map((seat, seatIndex) => (
-              <option key={seatIndex} value={seat}>
-                {seat}
-              </option>
-            ))}
-          {mode === "connectingTrip" &&
-            isSecondConnectedFlight &&
-            connectingFlightSecondSelectedSeats.map((seat, seatIndex) => (
-              <option key={seatIndex} value={seat}>
-                {seat}
-              </option>
-            ))}
-        </select>
+        </div>
       </div>
-    ))}
-</div>
-</div>
       <ToastContainer />
     </>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { setUser } from "../../redux/userSlice";
 import Box from "@mui/material/Box";
 import InputLabel from "@mui/material/InputLabel";
@@ -9,7 +9,7 @@ import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import { LoginCall, RegisterCall } from "../../api/Auth";
 import { toast, ToastContainer } from "react-toastify";
-
+import bg from "../../assets/loginBG.jpg"
 const Login = () => {
   const navigate = useNavigate();
   const [isRegistering, setIsRegistering] = useState(false);
@@ -55,7 +55,13 @@ const Login = () => {
           dispatch(setUser(response.User));
           localStorage.setItem("user", JSON.stringify(response.User));
           if (response.User.Role == "user") {
-            navigate("/userhome");
+            if(sessionStorage.getItem("redirectUrl")){
+              console.log(sessionStorage.getItem("redirectUrl"));
+              navigate(sessionStorage.getItem("redirectUrl"))
+            }else{
+              navigate("/userhome");
+            }
+            // navigate("/userhome");
           } else if (response.User.Role == "admin") {
             navigate("/admindashboard");
           }
@@ -102,7 +108,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-slate-500 to-blue-600 flex flex-col justify-center items-center">
+    <div className="min-h-screen bg-gradient-to-r from-white to-orange-300 flex flex-col justify-center items-center">
       <div className="bg-white p-8 rounded shadow-md w-96 transition-transform transform hover:scale-105">
         <h2 className="text-2xl font-semibold mb-4 text-center ">
           {isRegistering ? "Register" : "Login"}
@@ -213,6 +219,14 @@ const Login = () => {
             {isRegistering ? "Login" : "Sign up"}
           </a>
         </p>
+        <p className="mt-4 text-center text-[15px]">
+        Continue without signing in
+        <Link to="/userhome">
+          <a className="text-blue-500 hover:underline transition-colors duration-300 ease-in-out p-2">
+            Click here
+          </a>
+        </Link>
+      </p>
       </div>
       <ToastContainer position="top-right" autoClose={3000} />
     </div>

@@ -63,21 +63,22 @@ export const AddScheduleForMonths = async (schedule,months) => {
   };
 
 
-export const DeleteSchedules = async (idsToDelete) => {
-  console.log(idsToDelete)
-    try {
-        const response = await axios.patch('api/FlightSchedules', {
-          data: idsToDelete,
-          headers: {
-            'Content-Type': 'application/json', 
-          },
-        });
-        console.log('Flight schedules deleted:', response.data);
-      } catch (error) {
-        console.error('Error deleting flight schedules:', error);
-      }
-  };
+  export const DeleteSchedules = async (idsToDelete) => {
 
+    console.log(idsToDelete)
+
+    
+    try {
+      const response = await axios.patch('api/FlightSchedules', JSON.stringify(idsToDelete), {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('Flight schedules deleted:', response.data);
+    } catch (error) {
+      console.error('Error deleting flight schedules:', error);
+    }
+  };
 
   export const UpdateFlightSchedule = async (id,flightSchedule) => {
     try {

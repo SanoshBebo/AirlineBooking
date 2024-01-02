@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { SanoshAirlineDetails, airlinesapi } from "../../components/Constants";
 import axios from "axios";
 import axiosIntegratedInstance from "../../api/axiosIntegratedInstance";
+import SessionExpired from "../../components/SessionExpired";
 
 const ConfirmBooking = () => {
   const [PassengerDetails, setPassengerDetails] = useState([]);
@@ -38,73 +39,85 @@ const ConfirmBooking = () => {
   const [secondFlightScheduleDetails, setSecondFlightScheduleDetails] =
     useState([]);
   const [isBookingReady, setIsBookingReady] = useState(false);
+  const [confirmBtnClicked, setConfirmBtnClicked] = useState(false);
   const [remainingTime, setRemainingTime] = useState(5 * 60); // 5 minutes in seconds
+  const [sessionExpired, setSessionExpired] = useState(false); // State to manage session expiration
 
   useEffect(() => {
-    const userdata = JSON.parse(localStorage.getItem("user"));
-    setUserData(userdata);
+    if (sessionStorage.length == 0) {
+      navigate("/unauthorized");
+    } else {
+      const userdata = JSON.parse(localStorage.getItem("user"));
+      setUserData(userdata);
 
-    const SingleFlightPassengerDetails = JSON.parse(
-      sessionStorage.getItem("SingleFlightBookingInfo")
-    );
-
-    const ConnectingFlightPassengerDetails = JSON.parse(
-      sessionStorage.getItem("ConnectingFlightBookingInfo")
-    );
-
-    const RoundTripFirstFlightPassengerDetails = JSON.parse(
-      sessionStorage.getItem("FlightOne")
-    );
-
-    const RoundTripSecondFlightPassengerDetails = JSON.parse(
-      sessionStorage.getItem("FlightTwo")
-    );
-
-    if (
-      RoundTripFirstFlightPassengerDetails &&
-      RoundTripSecondFlightPassengerDetails
-    ) {
-      setBookingType("roundtrip");
-
-      const RoundTripDetails = JSON.parse(
-        sessionStorage.getItem("RoundTripDetails")
+      const SingleFlightPassengerDetails = JSON.parse(
+        sessionStorage.getItem("SingleFlightBookingInfo")
       );
 
-      if (RoundTripDetails[0].firstflight) {
-        setRoundTripFirstFlightType("connectingFlights");
-        setFirstFlightScheduleDetails(RoundTripDetails[0]);
-        setFirstFlightPassengerDetails(RoundTripFirstFlightPassengerDetails);
-      } else {
-        setRoundTripFirstFlightType("directflight");
-        setFirstFlightScheduleDetails(RoundTripDetails[0]);
-        setFirstFlightPassengerDetails(RoundTripFirstFlightPassengerDetails);
-      }
-
-      if (RoundTripDetails[1].firstflight) {
-        setRoundTripSecondFlightType("connectingFlights");
-        setSecondFlightScheduleDetails(RoundTripDetails[1]);
-        setSecondFlightPassengerDetails(RoundTripSecondFlightPassengerDetails);
-      } else {
-        setRoundTripSecondFlightType("directflight");
-        setSecondFlightScheduleDetails(RoundTripDetails[1]);
-        setSecondFlightPassengerDetails(RoundTripSecondFlightPassengerDetails);
-      }
-    }
-
-    if (SingleFlightPassengerDetails) {
-      const FlightDetails = JSON.parse(sessionStorage.getItem("directflight"));
-      setFlightScheduleDetails(FlightDetails);
-      setPassengerDetails(SingleFlightPassengerDetails);
-      setFlightType("directflight");
-    } else if (ConnectingFlightPassengerDetails) {
-      const FlightDetails = JSON.parse(
-        sessionStorage.getItem("connectingFlights")
+      const ConnectingFlightPassengerDetails = JSON.parse(
+        sessionStorage.getItem("ConnectingFlightBookingInfo")
       );
-      setFlightScheduleDetails(FlightDetails);
-      console.log(FlightDetails);
-      setPassengerDetails(ConnectingFlightPassengerDetails);
-      console.log(ConnectingFlightPassengerDetails);
-      setFlightType("connectingFlights");
+
+      const RoundTripFirstFlightPassengerDetails = JSON.parse(
+        sessionStorage.getItem("FlightOne")
+      );
+
+      const RoundTripSecondFlightPassengerDetails = JSON.parse(
+        sessionStorage.getItem("FlightTwo")
+      );
+
+      if (
+        RoundTripFirstFlightPassengerDetails &&
+        RoundTripSecondFlightPassengerDetails
+      ) {
+        setBookingType("roundtrip");
+
+        const RoundTripDetails = JSON.parse(
+          sessionStorage.getItem("RoundTripDetails")
+        );
+
+        if (RoundTripDetails[0].firstflight) {
+          setRoundTripFirstFlightType("connectingFlights");
+          setFirstFlightScheduleDetails(RoundTripDetails[0]);
+          setFirstFlightPassengerDetails(RoundTripFirstFlightPassengerDetails);
+        } else {
+          setRoundTripFirstFlightType("directflight");
+          setFirstFlightScheduleDetails(RoundTripDetails[0]);
+          setFirstFlightPassengerDetails(RoundTripFirstFlightPassengerDetails);
+        }
+
+        if (RoundTripDetails[1].firstflight) {
+          setRoundTripSecondFlightType("connectingFlights");
+          setSecondFlightScheduleDetails(RoundTripDetails[1]);
+          setSecondFlightPassengerDetails(
+            RoundTripSecondFlightPassengerDetails
+          );
+        } else {
+          setRoundTripSecondFlightType("directflight");
+          setSecondFlightScheduleDetails(RoundTripDetails[1]);
+          setSecondFlightPassengerDetails(
+            RoundTripSecondFlightPassengerDetails
+          );
+        }
+      }
+
+      if (SingleFlightPassengerDetails) {
+        const FlightDetails = JSON.parse(
+          sessionStorage.getItem("directflight")
+        );
+        setFlightScheduleDetails(FlightDetails);
+        setPassengerDetails(SingleFlightPassengerDetails);
+        setFlightType("directflight");
+      } else if (ConnectingFlightPassengerDetails) {
+        const FlightDetails = JSON.parse(
+          sessionStorage.getItem("connectingFlights")
+        );
+        setFlightScheduleDetails(FlightDetails);
+        console.log(FlightDetails);
+        setPassengerDetails(ConnectingFlightPassengerDetails);
+        console.log(ConnectingFlightPassengerDetails);
+        setFlightType("connectingFlights");
+      }
     }
   }, [refresh]);
 
@@ -171,9 +184,12 @@ const ConfirmBooking = () => {
             }
           });
         setIsBookingReady(false);
-        sessionStorage.removeItem("connectingFlights")
-        sessionStorage.removeItem("ConnectingFlightBookingInfo")
-        sessionStorage.removeItem("directFlight")
+        sessionStorage.removeItem("connectingFlights");
+        sessionStorage.removeItem("ConnectingFlightBookingInfo");
+        sessionStorage.removeItem("RoundTripDetails");
+        sessionStorage.removeItem("FlightOne");
+        sessionStorage.removeItem("FlightTwo");
+        sessionStorage.removeItem("directFlight");
         navigate("/BookingHistory");
       };
       makeBooking();
@@ -210,7 +226,12 @@ const ConfirmBooking = () => {
     return formattedTime;
   };
 
+  const textColorClass =
+    remainingTime > 60000 ? "text-green-500" : "text-red-500";
+  const bgColorClass = remainingTime > 60000 ? "bg-green-200" : "bg-red-200";
+
   const handleConfirmBooking = async () => {
+    setConfirmBtnClicked(true);
     if (bookingType == "roundtrip") {
       if (roundTripFirstflightType == "directflight") {
         let BookingModel = {
@@ -584,106 +605,388 @@ const ConfirmBooking = () => {
           });
       }
     }
-    navigate("/userhome");
+
+    setSessionExpired(true);
   };
 
   return (
-    <div className="m-5 flex flex-col">
-      <p>Remaining Time: {formatTime(remainingTime)}</p>
-      <div>
-        <ul className="divide-y divide-gray-300">
-          {flightType === "directflight" &&
-            PassengerDetails.map((Passenger) => (
-              <li
-                key={Passenger.SeatNo}
-                className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
-              >
-                <div className="flex flex-col space-y-1">
-                  <p className="text-lg font-semibold">{Passenger.Name}</p>
-                  <p className="text-sm text-gray-600">{Passenger.SeatNo}</p>
-                </div>
-                <div className="flex flex-col text-right">
-                  <p className="text-sm">
-                    {FlightScheduleDetails.FlightName} -{" "}
-                    {FlightScheduleDetails.FlightDuration}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {FlightScheduleDetails.SourceAirportId} -{" "}
-                    {FlightScheduleDetails.DestinationAirportId} -{" "}
-                    {FlightScheduleDetails.DateTime}
-                  </p>
-                </div>
-              </li>
-            ))}
+    <div>
+      {sessionExpired ? (
+        <SessionExpired message="Booking Cancelled" redirectUrl="/userhome" />
+      ) : (
+        <div className="m-5 flex flex-col">
+          <p className="p-4 bg-red-400 w-fit rounded-lg text-white">
+            Remaining Time: {formatTime(remainingTime)}
+          </p>
+          <div>
+            <ul className="divide-y divide-gray-300">
+              {flightType === "directflight" &&
+                PassengerDetails.map((Passenger) => (
+                  <li
+                    key={Passenger.SeatNo}
+                    className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+                  >
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-lg font-semibold">{Passenger.Name}</p>
+                      <p className="text-sm text-gray-600">
+                        {Passenger.SeatNo}
+                      </p>
+                    </div>
+                    <div className="flex flex-col text-right">
+                      <p className="text-sm">
+                        {FlightScheduleDetails.FlightName} -{" "}
+                        {FlightScheduleDetails.FlightDuration}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {FlightScheduleDetails.SourceAirportId} -{" "}
+                        {FlightScheduleDetails.DestinationAirportId} -{" "}
+                        {FlightScheduleDetails.DateTime}
+                      </p>
+                    </div>
+                  </li>
+                ))}
 
-          {flightType === "connectingFlights" &&
-            PassengerDetails[0].map((Passenger) => (
-              <li
-                key={Passenger.SeatNo}
-                className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
-              >
-                <div className="flex flex-col space-y-1">
-                  <p className="text-lg font-semibold">{Passenger.Name}</p>
-                  <p className="text-sm text-gray-600">{Passenger.SeatNo}</p>
-                </div>
-                <div className="flex flex-col text-right">
-                  <p className="text-sm">
-                    {FlightScheduleDetails.firstflight.FlightName} -{" "}
-                    {FlightScheduleDetails.firstflight.FlightDuration}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {FlightScheduleDetails.firstflight.SourceAirportId} -{" "}
-                    {FlightScheduleDetails.firstflight.DestinationAirportId} -{" "}
-                    {FlightScheduleDetails.firstflight.DateTime.split("T")[0]}{" "}
-                    {FlightScheduleDetails.firstflight.DateTime.split("T")[1]}
-                  </p>
-                </div>
-              </li>
-            ))}
+              {flightType === "connectingFlights" &&
+                PassengerDetails[0].map((Passenger) => (
+                  <li
+                    key={Passenger.SeatNo}
+                    className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+                  >
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-lg font-semibold">{Passenger.Name}</p>
+                      <p className="text-sm text-gray-600">
+                        {Passenger.SeatNo}
+                      </p>
+                    </div>
+                    <div className="flex flex-col text-right">
+                      <p className="text-sm">
+                        {FlightScheduleDetails.firstflight.FlightName} -{" "}
+                        {FlightScheduleDetails.firstflight.FlightDuration}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {FlightScheduleDetails.firstflight.SourceAirportId} -{" "}
+                        {FlightScheduleDetails.firstflight.DestinationAirportId}{" "}
+                        -{" "}
+                        {
+                          FlightScheduleDetails.firstflight.DateTime.split(
+                            "T"
+                          )[0]
+                        }{" "}
+                        {
+                          FlightScheduleDetails.firstflight.DateTime.split(
+                            "T"
+                          )[1]
+                        }
+                      </p>
+                    </div>
+                  </li>
+                ))}
 
-          {flightType === "connectingFlights" &&
-            PassengerDetails[1].map((Passenger) => (
-              <li
-                key={Passenger.SeatNo}
-                className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+              {flightType === "connectingFlights" &&
+                PassengerDetails[1].map((Passenger) => (
+                  <li
+                    key={Passenger.SeatNo}
+                    className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+                  >
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-lg font-semibold">{Passenger.Name}</p>
+                      <p className="text-sm text-gray-600">
+                        {Passenger.SeatNo}
+                      </p>
+                    </div>
+                    <div className="flex flex-col text-right">
+                      <p className="text-sm">
+                        {FlightScheduleDetails.secondflight.FlightName} -{" "}
+                        {FlightScheduleDetails.secondflight.FlightDuration}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {FlightScheduleDetails.secondflight.SourceAirportId} -{" "}
+                        {
+                          FlightScheduleDetails.secondflight
+                            .DestinationAirportId
+                        }{" "}
+                        -{" "}
+                        {
+                          FlightScheduleDetails.secondflight.DateTime.split(
+                            "T"
+                          )[0]
+                        }{" "}
+                        {
+                          FlightScheduleDetails.secondflight.DateTime.split(
+                            "T"
+                          )[1]
+                        }
+                      </p>
+                    </div>
+                  </li>
+                ))}
+            </ul>
+          </div>
+
+          {bookingType == "roundtrip" && (
+            <div>
+              <div>
+                <h1>Onward Flight</h1>
+                <ul className="divide-y divide-gray-300">
+                  {roundTripFirstflightType == "directflight" &&
+                    firstFlightPassengerDetails.map((Passenger) => (
+                      <li
+                        key={Passenger.SeatNo}
+                        className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+                      >
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-lg font-semibold">
+                            {Passenger.Name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {Passenger.SeatNo}
+                          </p>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <p className="text-sm">
+                            {firstFlightScheduleDetails.FlightName} -{" "}
+                            {firstFlightScheduleDetails.FlightDuration}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {firstFlightScheduleDetails.SourceAirportId} -{" "}
+                            {firstFlightScheduleDetails.DestinationAirportId} -{" "}
+                            {firstFlightScheduleDetails.DateTime}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+  {console.log(firstFlightPassengerDetails)}
+                  {roundTripFirstflightType == "connectingFlights" &&
+                    firstFlightPassengerDetails.slice(0, Math.ceil(firstFlightPassengerDetails.length / 2)).map((Passenger) => (
+                      <li
+                        key={Passenger.SeatNo}
+                        className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+                      >
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-lg font-semibold">
+                            {Passenger.Name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {Passenger.SeatNo}
+                          </p>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <p className="text-sm">
+                            {firstFlightScheduleDetails.firstflight.FlightName} -{" "}
+                            {firstFlightScheduleDetails.firstflight.FlightDuration}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {firstFlightScheduleDetails.firstflight.SourceAirportId}{" "}
+                            -{" "}
+                            {
+                              firstFlightScheduleDetails.firstflight
+                                .DestinationAirportId
+                            }{" "}
+                            -{" "}
+                            {
+                              firstFlightScheduleDetails.firstflight.DateTime.split(
+                                "T"
+                              )[0]
+                            }{" "}
+                            {
+                              firstFlightScheduleDetails.firstflight.DateTime.split(
+                                "T"
+                              )[1]
+                            }
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+
+                  {roundTripFirstflightType == "connectingFlights" &&
+                    firstFlightPassengerDetails.slice(Math.ceil(firstFlightPassengerDetails.length / 2)).map((Passenger) => (
+                      <li
+                        key={Passenger.SeatNo}
+                        className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+                      >
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-lg font-semibold">
+                            {Passenger.Name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {Passenger.SeatNo}
+                          </p>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <p className="text-sm">
+                            {firstFlightScheduleDetails.secondflight.FlightName} -{" "}
+                            {firstFlightScheduleDetails.secondflight.FlightDuration}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {firstFlightScheduleDetails.secondflight.SourceAirportId}{" "}
+                            -{" "}
+                            {
+                              firstFlightScheduleDetails.secondflight
+                                .DestinationAirportId
+                            }{" "}
+                            -{" "}
+                            {
+                              firstFlightScheduleDetails.secondflight.DateTime.split(
+                                "T"
+                              )[0]
+                            }{" "}
+                            {
+                              firstFlightScheduleDetails.secondflight.DateTime.split(
+                                "T"
+                              )[1]
+                            }
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+              <div>
+                <h1>Return Flight</h1>
+                <ul className="divide-y divide-gray-300">
+
+                  {roundTripSecondflightType == "directflight" &&
+                    secondFlightPassengerDetails.map((Passenger) => (
+                      <li
+                        key={Passenger.SeatNo}
+                        className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+                      >
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-lg font-semibold">
+                            {Passenger.Name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {Passenger.SeatNo}
+                          </p>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <p className="text-sm">
+                            {secondFlightScheduleDetails.FlightName} -{" "}
+                            {secondFlightScheduleDetails.FlightDuration}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {secondFlightScheduleDetails.SourceAirportId} -{" "}
+                            {secondFlightScheduleDetails.DestinationAirportId} -{" "}
+                            {secondFlightScheduleDetails.DateTime}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+
+                  {roundTripSecondflightType == "connectingFlights" &&
+                    secondFlightPassengerDetails.slice(0,Math.ceil(secondFlightPassengerDetails.length / 2)).map((Passenger) => (
+                      <li
+                        key={Passenger.SeatNo}
+                        className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+                      >
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-lg font-semibold">
+                            {Passenger.Name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {Passenger.SeatNo}
+                          </p>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <p className="text-sm">
+                            {secondFlightScheduleDetails.firstflight.FlightName} -{" "}
+                            {secondFlightScheduleDetails.firstflight.FlightDuration}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {secondFlightScheduleDetails.firstflight.SourceAirportId}{" "}
+                            -{" "}
+                            {
+                              secondFlightScheduleDetails.firstflight
+                                .DestinationAirportId
+                            }{" "}
+                            -{" "}
+                            {
+                              secondFlightScheduleDetails.firstflight.DateTime.split(
+                                "T"
+                              )[0]
+                            }{" "}
+                            {
+                              secondFlightScheduleDetails.firstflight.DateTime.split(
+                                "T"
+                              )[1]
+                            }
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+
+                  {roundTripSecondflightType == "connectingFlights" &&
+                    secondFlightPassengerDetails.slice(Math.ceil(secondFlightPassengerDetails.length / 2)).map((Passenger) => (
+                      <li
+                        key={Passenger.SeatNo}
+                        className="flex items-center justify-between py-3 px-4 hover:bg-gray-100"
+                      >
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-lg font-semibold">
+                            {Passenger.Name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {Passenger.SeatNo}
+                          </p>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <p className="text-sm">
+                            {secondFlightScheduleDetails.secondflight.FlightName} -{" "}
+                            {secondFlightScheduleDetails.secondflight.FlightDuration}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {secondFlightScheduleDetails.secondflight.SourceAirportId}{" "}
+                            -{" "}
+                            {
+                              secondFlightScheduleDetails.secondflight
+                                .DestinationAirportId
+                            }{" "}
+                            -{" "}
+                            {
+                              secondFlightScheduleDetails.secondflight.DateTime.split(
+                                "T"
+                              )[0]
+                            }{" "}
+                            {
+                              secondFlightScheduleDetails.secondflight.DateTime.split(
+                                "T"
+                              )[1]
+                            }
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col items-center">
+            <h1 className="text-2xl font-bold mt-6 mb-4">
+              Confirm Flight Booking
+            </h1>
+            <div className="flex space-x-4">
+              <button
+                className={`bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-md ${confirmBtnClicked==true && "cursor-wait opacity-80"}`}
+                onClick={() => !confirmBtnClicked && handleConfirmBooking()}
               >
-                <div className="flex flex-col space-y-1">
-                  <p className="text-lg font-semibold">{Passenger.Name}</p>
-                  <p className="text-sm text-gray-600">{Passenger.SeatNo}</p>
-                </div>
-                <div className="flex flex-col text-right">
-                  <p className="text-sm">
-                    {FlightScheduleDetails.secondflight.FlightName} -{" "}
-                    {FlightScheduleDetails.secondflight.FlightDuration}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {FlightScheduleDetails.secondflight.SourceAirportId} -{" "}
-                    {FlightScheduleDetails.secondflight.DestinationAirportId} -{" "}
-                    {FlightScheduleDetails.secondflight.DateTime.split("T")[0]}{" "}
-                    {FlightScheduleDetails.secondflight.DateTime.split("T")[1]}
-                  </p>
-                </div>
-              </li>
-            ))}
-        </ul>
-      </div>
-      <div className="flex flex-col items-center">
-        <h1 className="text-2xl font-bold mt-6 mb-4">Confirm Flight Booking</h1>
-        <div className="flex space-x-4">
-          <button
-            className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-md"
-            onClick={() => handleConfirmBooking()}
-          >
-            Yes
-          </button>
-          <button
-            className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-md"
-            onClick={() => handleCancelBooking()}
-          >
-            No
-          </button>
+                {confirmBtnClicked ? (
+                  <p>...booking</p>
+                ):(
+                  <p>Yes</p>
+                )}
+                
+              </button>
+              <button
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-md"
+                onClick={() => handleCancelBooking()}
+              >
+                No
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

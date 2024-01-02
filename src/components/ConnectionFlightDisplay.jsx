@@ -4,8 +4,12 @@ import {
   formatDate,
 } from "../helper_functions/DateTimeFormatter";
 
-const ConnectionFlightDisplay = ({ data, onClick, mode }) => {
-  console.log(data, onClick, mode);
+const ConnectionFlightDisplay = ({
+  data,
+  onClick,
+  mode,
+  bookButtonVisibility,
+}) => {
   console.log(data, onClick, mode);
 
   const [clickedIndex, setClickedIndex] = useState(null);
@@ -24,40 +28,48 @@ const ConnectionFlightDisplay = ({ data, onClick, mode }) => {
               {connection.SecondFlight.map((flight, i) => (
                 <div
                   key={i}
-                  className={`flex flex-col-reverse border p-10 rounded-md bg-white  hover:bg-gray-100 my-4 transition duration-300 ease-in-out`}
+                  className={`flex flex-col-reverse border p-5 md:p-10 rounded-md bg-white hover:bg-gray-100 my-4 transition duration-300 ease-in-out`}
                 >
                   <div className="flex flex-row">
                     <div className="-mx-0 bg-red-400 rounded-sm">
                       <p className="p-2 text-white">ONE STOP</p>
                     </div>
-                    <div
-                      className="mx-auto bg-red-400 rounded-sm cursor-pointer "
-                      onClick={() =>
-                        mode == "oneway"
-                          ? onClick(
-                              flight,
-                              connection.FirstFlight,
-                              "connectingTrip"
-                            )
-                          : onClick(connection.FirstFlight, flight)
-                      }
-                    >
-                      <p className={`p-2  text-white ${flight.SeatAvailability == 0 || connection.FirstFlight.SeatAvailability == 0 ? "disabled:" : "visible"}`}>Book Now</p>
-                    </div>
+                    {!bookButtonVisibility && (
+                      <div
+                        className="mx-auto bg-red-400 rounded-sm cursor-pointer "
+                        onClick={() =>
+                          mode === "oneway"
+                            ? onClick(
+                                flight,
+                                connection.FirstFlight,
+                                "connectingTrip"
+                              )
+                            : onClick(connection.FirstFlight, flight)
+                        }
+                      >
+                        <p
+                          className={`p-2  text-white ${
+                            flight.SeatAvailability === 0 ||
+                            connection.FirstFlight.SeatAvailability === 0
+                              ? "disabled:"
+                              : "visible"
+                          }`}
+                        >
+                          Book Now
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <div className="p-5">
+                  <div className="p-3 md:p-5">
                     <ul>
-                      <p className="flex items-center space-x-2 justify-between">
-                        <span className="text-lg font-semibold text-[#003366]">
+                      <div className="flex items-center space-x-2 justify-between">
+                        <p className="text-lg font-semibold text-[#003366]">
                           {flight.FlightName}
-                        </span>
-                        <div className="mx-auto mt-2 rounded-sm hover:cursor-pointer w-fit">
-                          <p className="text-red-500 p-2 rounded-md">
-                            Seats Left:{" "}
-                            {flight.SeatAvailability}
-                          </p>
-                        </div>
-                      </p>
+                        </p>
+                        <p className="text-red-500 p-2 rounded-md">
+                          Seats Left: {flight.SeatAvailability}
+                        </p>
+                      </div>
                       <div className="flex flex-row justify-between p-2 flex-wrap">
                         <div className="flex flex-col p-1">
                           <p>{flight.SourceAirportName}</p>
@@ -74,27 +86,22 @@ const ConnectionFlightDisplay = ({ data, onClick, mode }) => {
                               flight.DateTime,
                               flight.FlightDuration
                             )}
-                          </p>{" "}
-                          {/*Arrival Date Time */}
+                          </p>
                         </div>
                       </div>
-                     
                     </ul>
                   </div>
 
-                  <div className="p-5">
+                  <div className="p-3 md:p-5">
                     <ul>
-                      <p className="flex items-center space-x-2 justify-between">
-                        <span className="text-lg font-semibold text-purple-600">
+                      <div className="flex items-center space-x-2 justify-between">
+                        <p className="text-lg font-semibold text-purple-600">
                           {connection.FirstFlight.FlightName}
-                        </span>
-                        <div className="mx-auto mt-2 bg-rounded-sm hover:cursor-pointer w-fit">
-                          <p className="text-red-500  p-2 rounded-md">
-                            Seats Left:{" "}
-                            {connection.FirstFlight.SeatAvailability}
-                          </p>
-                        </div>
-                      </p>
+                        </p>
+                        <p className="text-red-500 p-2 rounded-md">
+                          Seats Left: {flight.SeatAvailability}
+                        </p>
+                      </div>
                       <div className="flex flex-row justify-between p-2 flex-wrap">
                         <div className="flex flex-col">
                           <p>{connection.FirstFlight.SourceAirportName}</p>
@@ -111,11 +118,9 @@ const ConnectionFlightDisplay = ({ data, onClick, mode }) => {
                               connection.FirstFlight.DateTime,
                               connection.FirstFlight.FlightDuration
                             )}
-                          </p>{" "}
-                          {/*Arrival Date Time */}
+                          </p>
                         </div>
                       </div>
-                       
                     </ul>
                   </div>
                 </div>

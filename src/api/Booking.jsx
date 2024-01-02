@@ -1,19 +1,27 @@
+import { useNavigate } from "react-router";
 import axiosInstance from "./axiosInstance";
 import axiosIntegratedInstance from "./axiosIntegratedInstance";
+
 export const GetBookingsOfUser = async(userid) => {
+  
   console.log(userid)
-    try{
-        const response = await axiosInstance.get(`api/Bookings/userbookings/${userid}`);
-        console.log(response);
-        if(response.data == "No Bookings"){
-          return [];
-        }
-        else
-          return response.data;
-    }catch(error){
-        console.error(error);
-        throw error;
+  
+  try {
+    const response = await axiosInstance.get(`api/Bookings/userbookings/${userid}`);
+    console.log(response);
+
+    console.log(response.status)
+    if (response.data === 'No Bookings') {
+      return [];
+    } else {
+      return response.data;
     }
+  } catch (error) {
+    if(error.response.status == 401){
+      return "logout"
+    }
+    throw error;
+  }
 }
 
 

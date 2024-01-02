@@ -19,6 +19,8 @@ const Login = () => {
   const [role, setRole] = useState("");
   const [invalidCredentials, setInvalidCredentials] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(true);
+  const [loginClicked, setLoginClicked] = useState(false);
+
 
   const dispatch = useDispatch();
 
@@ -40,6 +42,7 @@ const Login = () => {
   };
 
   const signIn = async () => {
+    setLoginClicked(true);
     setIsEmailValid(isEmailValidFormat(email));
 
     if (isEmailValid) {
@@ -69,10 +72,12 @@ const Login = () => {
           console.error("Login failed. Server returned an error.");
         }
       } catch (error) {
+        setLoginClicked(false);
         setInvalidCredentials(true);
         console.error("An error occurred while logging in:", error);
       }
     } else {
+      setLoginClicked(false);
       console.error("Invalid email format");
     }
   };

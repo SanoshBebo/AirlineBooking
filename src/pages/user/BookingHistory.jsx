@@ -10,48 +10,66 @@ import {
 } from "../../api/Booking";
 import { airlinesapi } from "../../components/Constants";
 import LoaderComponent from "../../components/LoaderComponent";
+import { useNavigate } from "react-router";
+import SessionExpired from "../../components/SessionExpired";
 
 const BookingHistory = () => {
   const [bookings, setBookings] = useState([]);
   const [refresh, setRefresh] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false); // State to manage session expiration
+  const navigate = useNavigate();
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    console.log(user);
-    GetBookingsOfUser(user.UserId)
-      .then((res) => {
-        console.log(res);
-        setBookings(res);
-        setTimeout(() => {
-          setLoaded(true);
-        }, 1000);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    if (user) {
+      GetBookingsOfUser(user.UserId)
+        .then((res) => {
+          if (res === "logout") {
+            // Handle session expiration here
+            setSessionExpired(true);
+          } else {
+            setBookings(res);
+            setTimeout(() => {
+              setLoaded(true);
+            }, 1000);
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+    else{
+      navigate("/unauthorized")
+    }
   }, [refresh]);
 
-  const handleCancelTicket = async(bookingId, Name, ticket) => {
-    console.log("slkdjflskdjflkdsf")
+  const handleCancelTicket = async (bookingId, Name, ticket) => {
+    console.log("slkdjflskdjflkdsf");
     console.log(ticket);
     console.log(bookingId, Name);
     let nameList = [Name];
 
-    const tickets =  [{
+    const tickets = [
+      {
         TicketNo: ticket.Ticket.TicketNo,
         BookingId: ticket.Ticket.BookingId,
-        FlightName: ticket.FlightSchedule.FlightName,
+        FlightName: ticket.FlightSchedule
+          ? ticket.FlightSchedule.FlightName
+          : ticket.Ticket.FlightName,
         SourceAirportId: ticket.SourceAirport.AirportName,
         DestinationAirportId: ticket.DestinationAirport.AirportName,
         SeatNo: ticket.Ticket.SeatNo,
         Name: ticket.Ticket.Name,
         Age: ticket.Ticket.Age,
         Gender: ticket.Ticket.Gender,
-        DateTime: ticket.FlightSchedule.DateTime,
-      }];
+        DateTime: ticket.FlightSchedule
+          ? ticket.FlightSchedule.DateTime
+          : ticket.Ticket.DateTime,
+      },
+    ];
 
-      console.log(tickets)
+    console.log(tickets);
 
     await CancelTicketsInABooking(bookingId, nameList)
       .then((res) => {
@@ -76,11 +94,7 @@ const BookingHistory = () => {
 
     const user = JSON.parse(localStorage.getItem("user"));
 
-  await CancelTicketsViaEmail(
-          tickets,
-          user.Email
-        );
-
+    await CancelTicketsViaEmail(tickets, user.Email);
   };
 
   const handleCancelBooking = (BookingId, booking) => {
@@ -90,14 +104,18 @@ const BookingHistory = () => {
       return {
         TicketNo: ticket.Ticket.TicketNo,
         BookingId: ticket.Ticket.BookingId,
-        FlightName: ticket.FlightSchedule.FlightName,
+        FlightName: ticket.FlightSchedule
+          ? ticket.FlightSchedule.FlightName
+          : ticket.Ticket.FlightName,
         SourceAirportId: ticket.SourceAirport.AirportName,
         DestinationAirportId: ticket.DestinationAirport.AirportName,
         SeatNo: ticket.Ticket.SeatNo,
         Name: ticket.Ticket.Name,
         Age: ticket.Ticket.Age,
         Gender: ticket.Ticket.Gender,
-        DateTime: ticket.FlightSchedule.DateTime,
+        DateTime: ticket.FlightSchedule
+          ? ticket.FlightSchedule.DateTime
+          : ticket.Ticket.DateTime,
       };
     });
 
@@ -128,20 +146,17 @@ const BookingHistory = () => {
       }
     });
 
-    
     const user = JSON.parse(localStorage.getItem("user"));
 
-  CancelBookingViaEmail(
-          tickets,
-          user.Email
-        );
-
+    CancelBookingViaEmail(tickets, user.Email);
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 ">
       <h1 className="text-3xl font-bold mb-8 text-center">Booking History</h1>
-      {loaded ? (
+      {sessionExpired ? (
+        <SessionExpired message="Your Session Has Expired" redirectUrl="/login"  /> // Display SessionExpired component if sessionExpired is true
+      ) : loaded ? (
         bookings.map((booking, index) => (
           <div
             key={index}
@@ -151,22 +166,22 @@ const BookingHistory = () => {
               <h2 className="text-xl font-bold">
                 Booking ID: {booking.Booking.BookingId}
               </h2>
-              {booking.Booking.Status == "Canceled" ? (
-              <button
-                disabled
-                className="text-sm font-semibold py-2 px-4 rounded bg-gray-500 text-white "
-              >
-                Cancelled
-              </button>
+              {booking.Booking.Status == "Cancelled" || booking.Booking.Status == "Canceled" ? (
+                <button
+                  disabled
+                  className="text-sm font-semibold py-2 px-4 rounded bg-gray-500 text-white "
+                >
+                  Cancelled
+                </button>
               ) : (
-              <button
-                className="text-sm font-semibold py-2 px-4 rounded bg-red-500 text-white hover:bg-red-600 focus:outline-none focus:bg-red-600 transition duration-300"
-                onClick={() => {
-                  handleCancelBooking(booking.Booking.BookingId, booking);
-                }}
-              >
-                Cancel Booking
-              </button>
+                <button
+                  className="text-sm font-semibold py-2 px-4 rounded bg-red-500 text-white hover:bg-red-600 focus:outline-none focus:bg-red-600 transition duration-300"
+                  onClick={() => {
+                    handleCancelBooking(booking.Booking.BookingId, booking);
+                  }}
+                >
+                  Cancel Booking
+                </button>
               )}
             </div>
             <p className="mb-2">Status: {booking.Booking.Status}</p>
@@ -175,8 +190,7 @@ const BookingHistory = () => {
             <h3 className="text-lg font-semibold mb-4 mt-6">Tickets:</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {console.log(booking)}
-              {
-              booking.Tickets.map((ticket, ticketIndex) => (
+              {booking.Tickets.map((ticket, ticketIndex) => (
                 <div
                   key={ticketIndex}
                   className="border p-4 bg-white rounded-md shadow-md relative"
@@ -212,10 +226,12 @@ const BookingHistory = () => {
                   <p className="mb-2">Gender: {ticket.Ticket.Gender}</p>
                   {ticket.FlightSchedule ? (
                     <p className="mb-2">
-                      Flight Name: {ticket.FlightSchedule.FlightName } 
+                      Flight Name: {ticket.FlightSchedule.FlightName}
                     </p>
                   ) : (
-                    <p className="mb-2">Flight Name: {ticket.Ticket.FlightName}</p>
+                    <p className="mb-2">
+                      Flight Name: {ticket.Ticket.FlightName}
+                    </p>
                   )}
 
                   <p className="mb-2">

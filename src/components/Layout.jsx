@@ -4,6 +4,8 @@ import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 
 const Layout = ({ children }) => {
+
+  
   const user = useSelector((state) => state.user.user);
 
   const navigate = useNavigate();

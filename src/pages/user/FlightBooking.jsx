@@ -5,6 +5,7 @@ import SeatDisplay from "../../components/SeatDisplay";
 import GetPassengerInfo from "../../components/GetPassengerInfo";
 import { ToastContainer, toast } from "react-toastify";
 import { SanoshAirlineDetails } from "../../components/Constants";
+import SessionExpired from "../../components/SessionExpired";
 
 const FlightBooking = () => {
   const { mode } = useParams();
@@ -76,6 +77,7 @@ const FlightBooking = () => {
   const [isFirstConnectedFlight, setIsFirstConnectedFlight] = useState(true);
   const [isSecondConnectedFlight, setIsSecondConnectedFlight] = useState(false);
   const [directFlightDetails, setDirectFlightDetail] = useState([]);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   function capitalizeKeys(obj) {
     const newObj = {};
@@ -89,72 +91,88 @@ const FlightBooking = () => {
   }
 
   useEffect(() => {
-    if (mode == "singleTrip") {
-      const directFlightDetails = sessionStorage.getItem("directflight");
-      if (directFlightDetails) {
-        const singleFlight = JSON.parse(directFlightDetails);
-        setDirectFlightDetail(singleFlight);
-        setfirstFlightScheduleId(singleFlight.ScheduleId);
-        GetSeatsForSchedule(
-          SanoshAirlineDetails.SanoshAirlines.apiPath,
-          singleFlight.ScheduleId
-        )
-          .then((res) => {
-            console.log(res);
-            const firstres = res.map((flight) => capitalizeKeys(flight));
-            setSingleFlightScheduleSeats(firstres);
-          })
-          .catch((error) => {
-            console.error("Error fetching seats for single flight:", error);
-          });
-      }
-    } else if (mode == "connectingTrip") {
-      const connectingFlightDetails =
-        sessionStorage.getItem("connectingFlights");
-      if (connectingFlightDetails) {
-        const connectingFlights = JSON.parse(connectingFlightDetails);
-        setConnectingFlightDetails(connectingFlights);
-        setFirstConnectedFlightScheduleId(
-          connectingFlights.firstflight.ScheduleId
-        );
-        setSecondConnectedFlightScheduleId(
-          connectingFlights.secondflight.ScheduleId
-        );
-        console.log(connectingFlights.firstflight.apiPath);
-        console.log(connectingFlights.secondflight.apiPath);
-        GetSeatsForSchedule(
-          connectingFlights.firstflight.apiPath,
-          connectingFlights.firstflight.ScheduleId
-        )
-          .then((res) => {
-            console.log(res);
-            const seats = res.map((seat) => capitalizeKeys(seat));
-            console.log(seats);
-            setConnectingFlightFirstScheduleSeats(seats);
-          })
-          .catch((error) => {
-            console.error(
-              "Error fetching seats for first connecting flight:",
-              error
-            );
-          });
+    if (sessionStorage.length == 0) {
+      navigate("/unauthorized");
+    } else {
+      if (mode == "singleTrip") {
+        const directFlightDetails = sessionStorage.getItem("directflight");
+        if (directFlightDetails) {
+          const singleFlight = JSON.parse(directFlightDetails);
+          setDirectFlightDetail(singleFlight);
+          setfirstFlightScheduleId(singleFlight.ScheduleId);
+          GetSeatsForSchedule(
+            SanoshAirlineDetails.SanoshAirlines.apiPath,
+            singleFlight.ScheduleId
+          )
+            .then((res) => {
+              console.log(res);
+              const firstres = res.map((flight) => capitalizeKeys(flight));
+              setSingleFlightScheduleSeats(firstres);
+            })
+            .catch((error) => {
+              if (error.response && error.response.status === 401) {
+                setSessionExpired(true);
+                console.error("Unauthorized access. Please log in again.");
+              } else {
+                console.error("Error fetching seats for single flight:", error);
+                // Handle other errors if needed
+              }
+            });
+        }
+      } else if (mode == "connectingTrip") {
+        const connectingFlightDetails =
+          sessionStorage.getItem("connectingFlights");
+        if (connectingFlightDetails) {
+          const connectingFlights = JSON.parse(connectingFlightDetails);
+          setConnectingFlightDetails(connectingFlights);
+          setFirstConnectedFlightScheduleId(
+            connectingFlights.firstflight.ScheduleId
+          );
+          setSecondConnectedFlightScheduleId(
+            connectingFlights.secondflight.ScheduleId
+          );
+          console.log(connectingFlights.firstflight.apiPath);
+          console.log(connectingFlights.secondflight.apiPath);
+          GetSeatsForSchedule(
+            connectingFlights.firstflight.apiPath,
+            connectingFlights.firstflight.ScheduleId
+          )
+            .then((res) => {
+              console.log(res);
+              const seats = res.map((seat) => capitalizeKeys(seat));
+              console.log(seats);
+              setConnectingFlightFirstScheduleSeats(seats);
+            })
+            .catch((error) => {
+              if (error.response && error.response.status === 401) {
+                setSessionExpired(true);
+                console.error("Unauthorized access. Please log in again.");
+              } else {
+                console.error("Error fetching seats for single flight:", error);
+                // Handle other errors if needed
+              }
+            });
 
-        GetSeatsForSchedule(
-          connectingFlights.secondflight.apiPath,
-          connectingFlights.secondflight.ScheduleId
-        )
-          .then((res) => {
-            console.log(res);
-            const seats = res.map((seat) => capitalizeKeys(seat));
-            console.log(seats);
-            setConnectingFlightSecondScheduleSeats(seats);
-          })
-          .catch((error) => {
-            console.error(
-              "Error fetching seats for second connecting flight:",
-              error
-            );
-          });
+          GetSeatsForSchedule(
+            connectingFlights.secondflight.apiPath,
+            connectingFlights.secondflight.ScheduleId
+          )
+            .then((res) => {
+              console.log(res);
+              const seats = res.map((seat) => capitalizeKeys(seat));
+              console.log(seats);
+              setConnectingFlightSecondScheduleSeats(seats);
+            })
+            .catch((error) => {
+              if (error.response && error.response.status === 401) {
+                setSessionExpired(true);
+                console.error("Unauthorized access. Please log in again.");
+              } else {
+                console.error("Error fetching seats for single flight:", error);
+                // Handle other errors if needed
+              }
+            });
+        }
       }
     }
   }, [mode, getUserDetails, refresh]);
@@ -192,8 +210,8 @@ const FlightBooking = () => {
   const arrangeSeats = (seats, setSeatRows, selectedSeats) => {
     const seatMap = {};
     const rows = [];
-    const seatOrder = ["A", "B", "C", "D", "E", "F"];
-
+    const seatOrder = ["A", "B", "C", " ", "D", "E", "F"]; // Adding a space for visual gap
+    
     seats.forEach((seat) => {
       const row = seat.SeatNumber.charAt(0);
       const col = parseInt(seat.SeatNumber.substring(1));
@@ -202,26 +220,26 @@ const FlightBooking = () => {
       }
       seatMap[row][col] = seat;
     });
-
+  
     for (let i = 1; i <= 17; i++) {
       const formattedRow = seatOrder.map((row, index) => {
         const seat = seatMap[row] ? seatMap[row][i] : null;
-        const isFirstGroup = index < 3; // Rows A, B, C
-        const isSecondGroup = index >= 3; // Rows D, E, F
-
+        const isSpace = row === " "; // Identifying the space element in the array
+  
         return (
           <div
             key={seat ? seat.SeatNumber : `${row}-${i}`}
             className={`seat p-4 m-2 border rounded-md  
-      ${
-        seat && selectedSeats.includes(seat.SeatNumber)
-          ? "bg-green-300 cursor-pointer"
-          : seat && seat.Status === "Available"
-          ? "bg-slate-100 cursor-pointer hover:bg-gray-100"
-          : seat
-          ? "bg-[#990011] text-white cursor-not-allowed opacity-50"
-          : "hidden"
-      }`}
+              ${
+                seat && selectedSeats.includes(seat.SeatNumber)
+                  ? "bg-green-300 cursor-pointer"
+                  : seat && seat.Status === "Available"
+                  ? "bg-slate-100 cursor-pointer hover:bg-gray-100"
+                  : seat
+                  ? "bg-[#990011] text-white cursor-not-allowed opacity-50"
+                  : "hidden"
+              }
+              ${isSpace ? 'hidden' : ''}`} // Hide the space element
             onClick={() => seat && selectSeat(seat, mode)}
           >
             {seat && (seat.Status === "Available" || seat.Status === "Booked")
@@ -230,16 +248,18 @@ const FlightBooking = () => {
           </div>
         );
       });
-
+  
       rows.push(
         <div key={i} className="flex seat-row">
           {formattedRow} {/* Display all seats in a row */}
         </div>
       );
     }
-
+  
     setSeatRows(rows);
   };
+  
+  
 
   const selectSeat = (seat, mode) => {
     if (mode === "singleTrip") {
@@ -336,9 +356,9 @@ const FlightBooking = () => {
   };
 
   const bookFlight = (scheduleid, status, seatList) => {
-console.log(userDetails)
+    console.log(userDetails);
 
-    if(passengerSeatSelections.length == 0){
+    if (passengerSeatSelections.length == 0) {
       toast.error("Please selects your seats");
       return;
     }
@@ -347,13 +367,12 @@ console.log(userDetails)
       return passengerSeatSelections[index];
     });
 
-    console.log(passengersWithSeats)
-  
+    console.log(passengersWithSeats);
+
     if (passengersWithSeats.length !== userDetails.length) {
       toast.error("Please select seats for all passengers.");
       return; // Exit the function if any passenger has not selected a seat
     }
-
 
     if (mode == "singleTrip") {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
@@ -378,8 +397,14 @@ console.log(userDetails)
             navigate("/FlightBooking/ConfirmBooking");
           }
         })
-        .catch((err) => {
-          console.error(err);
+        .catch((error) => {
+          if (error.response && error.response.status === 401) {
+            setSessionExpired(true);
+            console.error("Unauthorized access. Please log in again.");
+          } else {
+            console.error("Error fetching seats for single flight:", error);
+            // Handle other errors if needed
+          }
         });
     } else if (mode == "connectingTrip" && isFirstConnectedFlight) {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
@@ -403,8 +428,14 @@ console.log(userDetails)
             setRefresh(!refresh);
           }
         })
-        .catch((err) => {
-          console.error(err);
+        .catch((error) => {
+          if (error.response && error.response.status === 401) {
+            setSessionExpired(true);
+            console.error("Unauthorized access. Please log in again.");
+          } else {
+            console.error("Error fetching seats for single flight:", error);
+            // Handle other errors if needed
+          }
         });
     } else if (mode == "connectingTrip" && isSecondConnectedFlight) {
       const updatedPassengerDetails = userDetails.map((passenger, index) => ({
@@ -444,8 +475,14 @@ console.log(userDetails)
             navigate("/FlightBooking/ConfirmBooking");
           }
         })
-        .catch((err) => {
-          console.error(err);
+        .catch((error) => {
+          if (error.response && error.response.status === 401) {
+            setSessionExpired(true);
+            console.error("Unauthorized access. Please log in again.");
+          } else {
+            console.error("Error fetching seats for single flight:", error);
+            // Handle other errors if needed
+          }
         });
     }
   };
@@ -462,143 +499,144 @@ console.log(userDetails)
           }}
         />
       )}
-      <div className="flex flex-row p-10">
-        <div className="w-3/4">
-          {getUserDetails && (
-            <div className="flex justify-center items-center">
-              {mode === "singleTrip" && (
-                <div>
-                  <div className="flex flex-col py-10">
-                    <h1 className="text-3xl font-bold mb-4">
-                      {directFlightDetails.FlightName}
-                    </h1>
-                    <div className="flex flex-row space-x-4">
-                      <h1 className="text-lg font-semibold">
-                        {directFlightDetails.SourceAirportName}
-                      </h1>
-                      <span className="text-lg font-semibold mx-2">-</span>
-                      <h1 className="text-lg font-semibold">
-                        {directFlightDetails.DestinationAirportName}
-                      </h1>
-                    </div>
-                  </div>
-                  <SeatDisplay
-                    seatlist={singleFlightSeatRows}
-                    book={() =>
-                      bookFlight(
-                        firstFlightScheduleId,
-                        "Booked",
-                        singleFlightSelectedSeats
-                      )
-                    }
-                  />
-                </div>
-              )}
-              {mode === "connectingTrip" && isFirstConnectedFlight && (
-                <div className=" flex flex-col justify-center items-center text-center">
-                  
-                  <div className="flex flex-col py-10">
-                    <h1 className="text-3xl font-bold mb-4">
-                      {connectingFlightDetails.firstflight.FlightName}
-                    </h1>
-                    <div className="flex flex-row space-x-4">
-                      <h1 className="text-lg font-semibold">
-                        {connectingFlightDetails.firstflight.SourceAirportName}
-                      </h1>
-                      <span className="text-lg font-semibold mx-2">-</span>
-                      <h1 className="text-lg font-semibold">
-                        {connectingFlightDetails.firstflight.DestinationAirportName}
-                      </h1>
-                    </div>
-                  </div>
-                  <SeatDisplay
-                    seatlist={connectingFlightFirstSeatRows}
-                    book={() =>
-                      bookFlight(
-                        firstConnectedFlightScheduleId,
-                        "Booked",
-                        connectingFlightFirstSelectedSeats
-                      )
-                    }
-                  />
-                </div>
-              )}
-              {mode === "connectingTrip" && isSecondConnectedFlight && (
-                <div className=" flex flex-col items-center justify-center text-center">
-                  <div className="flex flex-col py-10">
-                    <h1 className="text-3xl font-bold mb-4">
-                      {connectingFlightDetails.secondflight.FlightName}
-                    </h1>
-                    <div className="flex flex-row space-x-4">
-                      <h1 className="text-lg font-semibold">
-                        {connectingFlightDetails.secondflight.SourceAirportName}
-                      </h1>
-                      <span className="text-lg font-semibold mx-2">-</span>
-                      <h1 className="text-lg font-semibold">
-                        {connectingFlightDetails.secondflight.DestinationAirportName}
-                      </h1>
-                    </div>
-                  </div>
-                  <SeatDisplay
-                    seatlist={connectingFlightSecondSeatRows}
-                    book={() =>
-                      bookFlight(
-                        secondConnectedFlightScheduleId,
-                        "Booked",
-                        connectingFlightSecondSelectedSeats
-                      )
-                    }
-                  />
-                </div>
-              )}
-            </div>
-          )}
-        </div>
 
-        <div className="w-1/2 mx-auto">
-          {" "}
-          {/* Set width to 50% and center the content */}
-          {getUserDetails &&
-            userDetails.map((passenger, index) => (
-              <div key={index} className="mb-4 p-5">
-                <p className="font-semibold">{passenger.Name}'s Seat:</p>
-                <select
-                  value={passengerSeatSelections[index] || ""}
-                  onChange={(e) =>
-                    handlePassengerSeatSelection(index, e.target.value)
-                  }
-                  className="block w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">Select Seat</option>
-                  {mode === "singleTrip" &&
-                    singleFlightSelectedSeats.map((seat, seatIndex) => (
-                      <option key={seatIndex} value={seat}>
-                        {seat}
-                      </option>
-                    ))}
-                  {mode === "connectingTrip" &&
-                    isFirstConnectedFlight &&
-                    connectingFlightFirstSelectedSeats.map(
-                      (seat, seatIndex) => (
-                        <option key={seatIndex} value={seat}>
-                          {seat}
-                        </option>
-                      )
-                    )}
-                  {mode === "connectingTrip" &&
-                    isSecondConnectedFlight &&
-                    connectingFlightSecondSelectedSeats.map(
-                      (seat, seatIndex) => (
-                        <option key={seatIndex} value={seat}>
-                          {seat}
-                        </option>
-                      )
-                    )}
-                </select>
+      {sessionExpired ? (
+        <SessionExpired
+          message="Your Session Has Expired"
+          redirectUrl="/login"
+        />
+      ) : (
+        <div className="flex flex-row flex-wrap p-4 md:p-10">
+          <div className="w-full md:w-3/4">
+            {getUserDetails && (
+              <div className="flex flex-col md:flex-row justify-center items-center space-y-6 md:space-y-0">
+                {(mode === "singleTrip" ||
+                  (mode === "connectingTrip" && isFirstConnectedFlight)) && (
+                  <div className="flex flex-col justify-center items-center text-center">
+                    <div className="flex flex-col py-10">
+                      <h1 className="text-3xl font-bold mb-4">
+                        {mode === "singleTrip"
+                          ? directFlightDetails.FlightName
+                          : connectingFlightDetails.firstflight.FlightName}
+                      </h1>
+                      <div className="flex flex-row space-x-4">
+                        <h1 className="text-lg font-semibold">
+                          {mode === "singleTrip"
+                            ? directFlightDetails.SourceAirportName
+                            : connectingFlightDetails.firstflight
+                                .SourceAirportName}
+                        </h1>
+                        <span className="text-lg font-semibold mx-2">-</span>
+                        <h1 className="text-lg font-semibold">
+                          {mode === "singleTrip"
+                            ? directFlightDetails.DestinationAirportName
+                            : connectingFlightDetails.firstflight
+                                .DestinationAirportName}
+                        </h1>
+                      </div>
+                    </div>
+                    <SeatDisplay
+                      seatlist={
+                        mode === "singleTrip"
+                          ? singleFlightSeatRows
+                          : connectingFlightFirstSeatRows
+                      }
+                      book={() =>
+                        bookFlight(
+                          mode === "singleTrip"
+                            ? firstFlightScheduleId
+                            : firstConnectedFlightScheduleId,
+                          "Booked",
+                          mode === "singleTrip"
+                            ? singleFlightSelectedSeats
+                            : connectingFlightFirstSelectedSeats
+                        )
+                      }
+                    />
+                  </div>
+                )}
+                {mode === "connectingTrip" && isSecondConnectedFlight && (
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="flex flex-col py-10">
+                      <h1 className="text-3xl font-bold mb-4">
+                        {connectingFlightDetails.secondflight.FlightName}
+                      </h1>
+                      <div className="flex flex-row space-x-4">
+                        <h1 className="text-lg font-semibold">
+                          {
+                            connectingFlightDetails.secondflight
+                              .SourceAirportName
+                          }
+                        </h1>
+                        <span className="text-lg font-semibold mx-2">-</span>
+                        <h1 className="text-lg font-semibold">
+                          {
+                            connectingFlightDetails.secondflight
+                              .DestinationAirportName
+                          }
+                        </h1>
+                      </div>
+                    </div>
+                    <SeatDisplay
+                      seatlist={connectingFlightSecondSeatRows}
+                      book={() =>
+                        bookFlight(
+                          secondConnectedFlightScheduleId,
+                          "Booked",
+                          connectingFlightSecondSelectedSeats
+                        )
+                      }
+                    />
+                  </div>
+                )}
               </div>
-            ))}
+            )}
+          </div>
+
+          <div className="w-full md:w-1/2 mx-auto">
+            {getUserDetails &&
+              userDetails.map((passenger, index) => (
+                <div key={index} className="mb-4 p-5">
+                  <p className="font-semibold">{passenger.Name}'s Seat:</p>
+                  <select
+                    value={passengerSeatSelections[index] || ""}
+                    onChange={(e) =>
+                      handlePassengerSeatSelection(index, e.target.value)
+                    }
+                    className="block w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="">Select Seat</option>
+                    {mode === "singleTrip" &&
+                      singleFlightSelectedSeats.map((seat, seatIndex) => (
+                        <option key={seatIndex} value={seat}>
+                          {seat}
+                        </option>
+                      ))}
+                    {mode === "connectingTrip" &&
+                      isFirstConnectedFlight &&
+                      connectingFlightFirstSelectedSeats.map(
+                        (seat, seatIndex) => (
+                          <option key={seatIndex} value={seat}>
+                            {seat}
+                          </option>
+                        )
+                      )}
+                    {mode === "connectingTrip" &&
+                      isSecondConnectedFlight &&
+                      connectingFlightSecondSelectedSeats.map(
+                        (seat, seatIndex) => (
+                          <option key={seatIndex} value={seat}>
+                            {seat}
+                          </option>
+                        )
+                      )}
+                  </select>
+                </div>
+              ))}
+          </div>
         </div>
-      </div>
+      )}
+
       <ToastContainer />
     </>
   );

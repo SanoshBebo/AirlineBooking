@@ -30,7 +30,7 @@ const navigate = useNavigate()
     <div className="session-expired-container">
       <div className="session-expired-modal">
         <h2>{message}</h2>
-        <p>Redirecting to login page in {countdown}...</p>
+        <p>Redirecting in {countdown}...</p>
       </div>
     </div>
   );

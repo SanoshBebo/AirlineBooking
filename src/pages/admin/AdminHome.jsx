@@ -10,6 +10,7 @@ const AdminHome = () => {
   
   useEffect(() => {
     if(!Authenticate("admin")){
+
       navigate("/login")
     }
   }, [])

@@ -1,8 +1,8 @@
 export const airlinesapi = {
-   sanjayairline: {
-       name: 'Sanjay Airline',
-       apiPath: 'http://192.168.10.54:88/api/',
-     },
+  //  sanjayairline: {
+  //      name: 'Sanjay Airline',
+  //      apiPath: 'http://192.168.10.54:88/api/',
+  //    },
   
     //  rethuairline: {
     //    name: 'Rethu Airline',
@@ -32,34 +32,39 @@ export const airlinesapi = {
     //    name: 'Harini Airline',
     //    apiPath: 'http://192.168.10.78:89/api/',
     //  },
-     spirityairline: {
-       name: 'Sprity Airline',
-       apiPath: 'http://192.168.10.67:90/api/',
-     },
-     suriyaairline: {
-       name: 'Suriya Airline',
-       apiPath: 'http://192.168.10.70:98/api/',
-     },
-     mahaairline: {
-       name: 'Maha Airline',
-       apiPath: 'http://192.168.10.63:91/api/',
-     },
-    //  dhanuairline: {
-    //    name: 'Dhanu Airline',
-    //    apiPath: 'http://192.168.10.75:8080/api/',
+    //  sprityairline: {
+    //    name: 'Sprity Airline',
+    //    apiPath: 'http://192.168.10.67:90/api/',
     //  },
+    //  suriyaairline: {
+    //    name: 'Suriya Airline',
+    //    apiPath: 'http://192.168.10.70:98/api/',
+    //  },
+    //  mahaairline: {
+    //    name: 'Maha Airline',
+    //    apiPath: 'http://192.168.10.63:91/api/',
+    //  },
+     dhanuairline: {
+       name: 'Dhanu Airline',
+       apiPath: 'http://192.168.10.75:8080/api/',
+     },
     //  vishalairline: {
     //    name: 'Vishal Airline',
     //    apiPath: 'http://192.168.10.54:85/api/'
     //  },
-     akshayairline: {
-       name: 'Akshya Airline',
-       apiPath: 'http://192.168.10.82:92/api/',
-     },
+    //  akshayairline: {
+    //    name: 'Akshya Airline',
+    //    apiPath: 'http://192.168.10.82:92/api/',
+    //  },
      abhiramairline: {
        name: 'Abhiram Airline',
        apiPath: 'http://192.168.10.94:83/api/'
      },
+    // SanoshAirlines: {
+    //   name: "SanoshAirlines",
+    //   // apiPath: "http://192.168.10.66:81/api/",
+    //   apiPath: "https://localhost:44329/api/",
+    // },
 
 };
 

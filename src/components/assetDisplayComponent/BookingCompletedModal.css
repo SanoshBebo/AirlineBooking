@@ -1,0 +1,47 @@
+.confetti-left,
+.confetti-right {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti-left::before,
+.confetti-right::before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #f00; /* Change the color as needed */
+  border-radius: 50%;
+  animation: confetti 3s ease-in-out infinite;
+}
+
+.confetti-left::before {
+  left: 50px; /* Adjust the starting position as needed */
+  top: -10px; /* Adjust the starting position as needed */
+}
+
+.confetti-right::before {
+  right: 50px; /* Adjust the starting position as needed */
+  top: -10px; /* Adjust the starting position as needed */
+}
+
+@keyframes confetti {
+  0% {
+    transform: translateY(0) rotateZ(0);
+  }
+  25% {
+    transform: translateY(200px) rotateZ(180deg);
+  }
+  50% {
+    transform: translateY(400px) rotateZ(360deg);
+  }
+  75% {
+    transform: translateY(600px) rotateZ(540deg);
+  }
+  100% {
+    transform: translateY(800px) rotateZ(720deg);
+  }
+}

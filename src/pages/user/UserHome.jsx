@@ -84,6 +84,9 @@ const UserHome = () => {
 
   const [myConnectingFlights, setMyConnectingFlights] = useState([]);
 
+  const [finalMyFirstConnectingFlights, setFinalMyFirstConnectingFlights] = useState([]);
+  const [finalMySecondConnectingFlights, setFinalMySecondConnectingFlights] = useState([]);
+
   const [directFlightsLoaded, setDirectFlightsLoaded] = useState(false);
   const [myConnectingFlightsLoaded, setMyConnectingFlightsLoaded] =
     useState(false);
@@ -92,6 +95,7 @@ const UserHome = () => {
 
     const searchSectionRef = useRef(null);
     const onwardReturnSectionRef = useRef(null);
+    const selectedFlights = useRef(null);
 
   const [
     selectedDirectFlightsFirstFlight,
@@ -226,6 +230,8 @@ const UserHome = () => {
     setDirectFlightSecondFlight([]);
     setFinalFirstConnectingFlights([]);
     setFinalSecondConnectingFlights([]);
+    setFinalMyFirstConnectingFlights([])
+    setFinalMySecondConnectingFlights([])
     setSearched(true);
     setLoaded(false);
     setDirectFlightsLoaded(false);
@@ -303,6 +309,8 @@ const UserHome = () => {
         setFinalIntegratedConnectingFlights(data);
         setPartnerConnectingFlightsLoaded(true);
       } else if (bookingType == "roundtrip") {
+
+
         GetDirectFlightSchedule(
           filters.source,
           filters.destination,
@@ -317,10 +325,11 @@ const UserHome = () => {
           filters.source,
           filters.returndate
         ).then((res) => {
-          setDirectFlightSecondFlight(res);
           console.log(res);
+          setDirectFlightSecondFlight(res);
         });
 
+        
         setLoaded(true);
 
         setTimeout(() => {
@@ -333,6 +342,32 @@ const UserHome = () => {
           }
         }, 500);
 
+        const onwardmyconnectingflight = await getIntegratedFlightDetails(
+          SanoshAirlineDetails,
+          SanoshAirlineDetails,
+          filters.source,
+          filters.destination,
+          filters.date
+        );
+
+        console.log(onwardmyconnectingflight)
+
+
+        setFinalMyFirstConnectingFlights(onwardmyconnectingflight);
+        
+        
+        const returnmyconnectingflight = await getIntegratedFlightDetails(
+          SanoshAirlineDetails,
+          SanoshAirlineDetails,
+          filters.destination,
+          filters.source,
+          filters.returndate
+          );
+          
+          console.log(returnmyconnectingflight)
+
+
+        setFinalMySecondConnectingFlights(returnmyconnectingflight);
         
         const firstmineconnectingFlights = await getIntegratedFlightDetails(
           SanoshAirlineDetails,
@@ -472,12 +507,24 @@ const UserHome = () => {
   const [roundTripSecondFlightType, setRoundTripSecondFlightType] =
     useState("");
 
+    const moveToSelectedFlights = () =>{
+      setTimeout(() => {
+        if (searchSectionRef.current && selectedFlights.current) {
+          selectedFlights.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 500);
+    }
   const handleFirstFlightDirect = (flight) => {
     setRoundTripFirstFlightDetails(flight);
     setSelectedDirectFlightsFirstFlight([flight]);
 
     console.log([flight]);
     setRoundTripFirstFlightType("direct");
+    moveToSelectedFlights()
+    
   };
 
   const handleFirstFlightConnect = (firstflight, secondflight) => {
@@ -496,6 +543,7 @@ const UserHome = () => {
     console.log(selectedInfo);
     setSelectedFinalFirstConnectingFlights(selectedInfo);
     setRoundTripFirstFlightType("connecting");
+    moveToSelectedFlights()
   };
 
   const handleSecondFlightDirect = (flight) => {
@@ -503,6 +551,7 @@ const UserHome = () => {
     setSelectedDirectFlightSecondFlight([flight]);
     console.log([flight]);
     setRoundTripSecondFlightType("direct");
+    moveToSelectedFlights()
   };
 
   const handleSecondFlightConnect = (firstflight, secondflight) => {
@@ -520,6 +569,7 @@ const UserHome = () => {
     console.log(selectedInfo);
     setSelectedFinalSecondConnectingFlights(selectedInfo);
     setRoundTripSecondFlightType("connecting");
+    moveToSelectedFlights()
   };
 
   const confirmRoundTripBooking = () => {
@@ -548,7 +598,8 @@ const UserHome = () => {
     backgroundPosition: 'center',
   }}
 >
-        <div className="flex flex-row md:flex-row gap-4 p-3 items-center justify-center">
+
+        <div className="flex flex-row md:flex-row gap-4 p-3 items-center justify-center z-10">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -577,12 +628,13 @@ const UserHome = () => {
             </label>
           </div>
         </div>
+          <div className="bg-red-500 rounded-xl">
         <div className="flex text-white flex-col md:flex-row gap-2 p-3">
           <FormControl
             sx={{ minWidth: 200, maxWidth: 200 }}
             className="w-full md:w-auto mb-3 md:mb-0"
           >
-            <InputLabel id="demo-simple-select-label">From</InputLabel>
+            <InputLabel id="demo-simple-select-label" style={{ color: 'black', fontWeight: 'bold'}}>From</InputLabel>
             <Select
               value={filters.source}
               onChange={handleFilterChange}
@@ -604,7 +656,7 @@ const UserHome = () => {
             sx={{ minWidth: 200, maxWidth: 200 }}
             className="w-full md:w-auto mb-3 md:mb-0"
           >
-            <InputLabel id="demo-simple-select-label">To</InputLabel>
+            <InputLabel id="demo-simple-select-label" style={{ color: 'black', fontWeight: 'bold'}}>To</InputLabel>
             <Select
               value={filters.destination}
               onChange={handleFilterChange}
@@ -628,9 +680,9 @@ const UserHome = () => {
             name="date"
             value={filters.date}
             onChange={handleFilterChange}
-            className="bg-white"
+            className="bg-white font-bold"
             inputProps={{ min: new Date().toISOString().split("T")[0] }}
-            InputLabelProps={{ shrink: true }}
+            InputLabelProps={{ shrink: true , sx: { fontWeight: 'bold' }}}
           />
           <TextField
             label="Return Date"
@@ -641,14 +693,16 @@ const UserHome = () => {
             }`}
             value={filters.returndate}
             onChange={handleFilterChange}
-            InputLabelProps={{ shrink: true }}
+            InputLabelProps={{ shrink: true, sx: { fontWeight: 'bold' }}}
             inputProps={{ min: new Date().toISOString().split("T")[0] }}
             disabled={bookingType === "oneway"}
           />
         </div>
+  </div>
+
         <div className="flex flex-col md:flex-row gap-5">
           <button
-            className="text-white font-medium rounded p-2 bg-[#FFC107]"
+            className="text-white font-medium rounded p-2 bg-red-700"
             onClick={() => {
               searchFlightSchedules();
             }}
@@ -723,7 +777,7 @@ const UserHome = () => {
             searched &&
             (roundTripFlightsFound ? (
               <div className="flex flex-col">
-                <div className="flex flex-col lg:flex-row gap-10 lg:gap-20 p-4 lg:p-10 bg-red-500 rounded-xl border border-gray-200 min-h-[50vh] mb-4">
+                <div ref={selectedFlights} className="flex flex-col lg:flex-row gap-10 lg:gap-20 p-4 lg:p-10 bg-red-500 rounded-xl border border-gray-200 min-h-[50vh] mb-4">
                   <div className="flex flex-col w-full lg:w-1/2">
                     <h1 className="font-semibold text-2xl text-center p-4 text-[#fff]">
                       ONWARD FLIGHT
@@ -796,6 +850,13 @@ const UserHome = () => {
                       mode="roundtrip"
                     />
                     <ConnectionFlightDisplay
+                      data={finalMyFirstConnectingFlights}
+                      onClick={(firstFlight, secondFlight) =>
+                        handleFirstFlightConnect(firstFlight, secondFlight)
+                      }
+                      mode="roundtrip"
+                    />
+                    <ConnectionFlightDisplay
                       data={finalFirstConnectingFlights}
                       onClick={(firstFlight, secondFlight) =>
                         handleFirstFlightConnect(firstFlight, secondFlight)
@@ -813,6 +874,13 @@ const UserHome = () => {
                       onClick={(flight) => {
                         handleSecondFlightDirect(flight);
                       }}
+                      mode="roundtrip"
+                    />
+                    <ConnectionFlightDisplay
+                      data={finalMySecondConnectingFlights}
+                      onClick={(firstFlight, secondFlight) =>
+                        handleSecondFlightConnect(firstFlight, secondFlight)
+                      }
                       mode="roundtrip"
                     />
                     <ConnectionFlightDisplay

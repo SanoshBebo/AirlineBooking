@@ -14,6 +14,8 @@ import { SanoshAirlineDetails, airlinesapi } from "../../components/Constants";
 import axios from "axios";
 import axiosIntegratedInstance from "../../api/axiosIntegratedInstance";
 import SessionExpired from "../../components/SessionExpired";
+import Message from "../../components/assetDisplayComponent/Message";
+import BookingCompletedModal from "../../components/assetDisplayComponent/BookingCompletedModal";
 
 const ConfirmBooking = () => {
   const [PassengerDetails, setPassengerDetails] = useState([]);
@@ -65,6 +67,12 @@ const ConfirmBooking = () => {
       const RoundTripSecondFlightPassengerDetails = JSON.parse(
         sessionStorage.getItem("FlightTwo")
       );
+
+      if(SingleFlightPassengerDetails == null && ConnectingFlightPassengerDetails == null 
+        && RoundTripFirstFlightPassengerDetails == null && RoundTripSecondFlightPassengerDetails == null){
+      navigate("/unauthorized");
+
+        }
 
       if (
         RoundTripFirstFlightPassengerDetails &&
@@ -189,12 +197,23 @@ const ConfirmBooking = () => {
         sessionStorage.removeItem("RoundTripDetails");
         sessionStorage.removeItem("FlightOne");
         sessionStorage.removeItem("FlightTwo");
+        sessionStorage.removeItem("directflight");
         sessionStorage.removeItem("directFlight");
+        sessionStorage.removeItem("SingleFlightBookingInfo");
+        handleModalDisplay();
         navigate("/BookingHistory");
       };
       makeBooking();
     }
   }, [isBookingReady, connectingFlightBookingModel]);
+
+  const [showModal, setShowModal] = useState(false)
+  const handleModalDisplay = () => {
+    setShowModal(true);
+    setTimeout(() => {
+      setShowModal(false);
+    }, 2000); // Modal will be shown for 2 seconds (2000 milliseconds)
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -629,7 +648,7 @@ const ConfirmBooking = () => {
                     <div className="flex flex-col space-y-1">
                       <p className="text-lg font-semibold">{Passenger.Name}</p>
                       <p className="text-sm text-gray-600">
-                        {Passenger.SeatNo}
+                      Seat:  {Passenger.SeatNo}
                       </p>
                     </div>
                     <div className="flex flex-col text-right">
@@ -655,7 +674,7 @@ const ConfirmBooking = () => {
                     <div className="flex flex-col space-y-1">
                       <p className="text-lg font-semibold">{Passenger.Name}</p>
                       <p className="text-sm text-gray-600">
-                        {Passenger.SeatNo}
+                      Seat:  {Passenger.SeatNo}
                       </p>
                     </div>
                     <div className="flex flex-col text-right">
@@ -691,7 +710,7 @@ const ConfirmBooking = () => {
                     <div className="flex flex-col space-y-1">
                       <p className="text-lg font-semibold">{Passenger.Name}</p>
                       <p className="text-sm text-gray-600">
-                        {Passenger.SeatNo}
+                      Seat:  {Passenger.SeatNo}
                       </p>
                     </div>
                     <div className="flex flex-col text-right">
@@ -726,7 +745,7 @@ const ConfirmBooking = () => {
           {bookingType == "roundtrip" && (
             <div>
               <div>
-                <h1>Onward Flight</h1>
+                <h1 className="font-semibold p-4">Onward Flight(s)</h1>
                 <ul className="divide-y divide-gray-300">
                   {roundTripFirstflightType == "directflight" &&
                     firstFlightPassengerDetails.map((Passenger) => (
@@ -739,7 +758,7 @@ const ConfirmBooking = () => {
                             {Passenger.Name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {Passenger.SeatNo}
+                          Seat:  {Passenger.SeatNo}
                           </p>
                         </div>
                         <div className="flex flex-col text-right">
@@ -755,7 +774,6 @@ const ConfirmBooking = () => {
                         </div>
                       </li>
                     ))}
-  {console.log(firstFlightPassengerDetails)}
                   {roundTripFirstflightType == "connectingFlights" &&
                     firstFlightPassengerDetails.slice(0, Math.ceil(firstFlightPassengerDetails.length / 2)).map((Passenger) => (
                       <li
@@ -767,7 +785,7 @@ const ConfirmBooking = () => {
                             {Passenger.Name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {Passenger.SeatNo}
+                          Seat:  {Passenger.SeatNo}
                           </p>
                         </div>
                         <div className="flex flex-col text-right">
@@ -809,7 +827,7 @@ const ConfirmBooking = () => {
                             {Passenger.Name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {Passenger.SeatNo}
+                          Seat:  {Passenger.SeatNo}
                           </p>
                         </div>
                         <div className="flex flex-col text-right">
@@ -842,7 +860,7 @@ const ConfirmBooking = () => {
                 </ul>
               </div>
               <div>
-                <h1>Return Flight</h1>
+              <h1 className="font-semibold p-4">Return Flight(s)</h1>
                 <ul className="divide-y divide-gray-300">
 
                   {roundTripSecondflightType == "directflight" &&
@@ -856,7 +874,7 @@ const ConfirmBooking = () => {
                             {Passenger.Name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {Passenger.SeatNo}
+                            Seat: {Passenger.SeatNo}
                           </p>
                         </div>
                         <div className="flex flex-col text-right">
@@ -884,7 +902,7 @@ const ConfirmBooking = () => {
                             {Passenger.Name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {Passenger.SeatNo}
+                          Seat: {Passenger.SeatNo}
                           </p>
                         </div>
                         <div className="flex flex-col text-right">
@@ -926,7 +944,7 @@ const ConfirmBooking = () => {
                             {Passenger.Name}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {Passenger.SeatNo}
+                          Seat: {Passenger.SeatNo}
                           </p>
                         </div>
                         <div className="flex flex-col text-right">
@@ -977,16 +995,24 @@ const ConfirmBooking = () => {
                 )}
                 
               </button>
-              <button
-                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-md"
-                onClick={() => handleCancelBooking()}
-              >
-                No
-              </button>
+              {
+                !confirmBtnClicked && (<button
+                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-md"
+                  onClick={() => handleCancelBooking()}
+                >
+                  
+                  No
+                </button>)
+              }
             </div>
           </div>
         </div>
       )}
+      {
+        showModal && (
+          <BookingCompletedModal showModal={showModal} />
+        )
+      }
     </div>
   );
 };

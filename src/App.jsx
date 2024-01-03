@@ -74,7 +74,12 @@ function App() {
             </Layout>
           }
         />
-        <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/unauthorized" element={
+        <Layout>
+          <Unauthorized />
+      </Layout>
+        
+      } />
         <Route path="/*" element={<NoPage />} />
       </Routes>
     </Router>

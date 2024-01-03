@@ -14,7 +14,7 @@ const DirectFlightDisplay = ({ data, onClick, mode, bookButtonVisibility }) => {
           {data.map((flight) => (
             <li
               key={flight.ScheduleId}
-              className="flex flex-col items-start p-5 md:p-10 border-b border border-1 bg-white hover:bg-gray-100 rounded"
+              className="flex flex-col items-start mt-4 p-5 md:p-10 border-b border border-1 bg-white hover:bg-gray-100 rounded"
             >
               <div className="w-full">
                 <p className="flex items-center space-x-2 justify-between">

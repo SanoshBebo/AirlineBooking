@@ -23,6 +23,10 @@ const BookingHistory = () => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user) {
+      console.log(user)
+      if(user.Role == "admin"){
+        navigate("/unauthorized");
+      }
       GetBookingsOfUser(user.UserId)
         .then((res) => {
           if (res === "logout") {

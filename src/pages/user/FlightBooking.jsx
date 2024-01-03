@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChangeSeatStatus, GetSeatsForSchedule } from "../../api/Seat";
 import SeatDisplay from "../../components/SeatDisplay";
@@ -33,6 +33,7 @@ const FlightBooking = () => {
   ] = useState([]);
 
   const navigate = useNavigate();
+  const seatsRef = useRef(null);
 
   const [
     connectingFlightFirstScheduleSeats,
@@ -210,8 +211,8 @@ const FlightBooking = () => {
   const arrangeSeats = (seats, setSeatRows, selectedSeats) => {
     const seatMap = {};
     const rows = [];
-    const seatOrder = ["A", "B", "C", " ", "D", "E", "F"]; // Adding a space for visual gap
-    
+    const seatOrder = ["A", "B", "C", "gap", "D", "E", "F"]; // Placeholder for visual gap
+  
     seats.forEach((seat) => {
       const row = seat.SeatNumber.charAt(0);
       const col = parseInt(seat.SeatNumber.substring(1));
@@ -224,22 +225,22 @@ const FlightBooking = () => {
     for (let i = 1; i <= 17; i++) {
       const formattedRow = seatOrder.map((row, index) => {
         const seat = seatMap[row] ? seatMap[row][i] : null;
-        const isSpace = row === " "; // Identifying the space element in the array
+        const isGap = row === "gap"; // Identifying the space element in the array
   
         return (
           <div
             key={seat ? seat.SeatNumber : `${row}-${i}`}
-            className={`seat p-4 m-2 border rounded-md  
+            className={`seat p-3 m-2 border rounded-md w-12 h-12 flex items-center justify-center 
               ${
                 seat && selectedSeats.includes(seat.SeatNumber)
                   ? "bg-green-300 cursor-pointer"
                   : seat && seat.Status === "Available"
                   ? "bg-slate-100 cursor-pointer hover:bg-gray-100"
                   : seat
-                  ? "bg-[#990011] text-white cursor-not-allowed opacity-50"
+                  ? "bg-[#990011] text-white cursor-not-allowed opacity-20"
                   : "hidden"
               }
-              ${isSpace ? 'hidden' : ''}`} // Hide the space element
+              ${isGap ? "hidden" : ""}`} // Hide the space element
             onClick={() => seat && selectSeat(seat, mode)}
           >
             {seat && (seat.Status === "Available" || seat.Status === "Booked")
@@ -258,6 +259,7 @@ const FlightBooking = () => {
   
     setSeatRows(rows);
   };
+  
   
   
 
@@ -485,6 +487,18 @@ const FlightBooking = () => {
           }
         });
     }
+
+    
+    setTimeout(() => {
+            
+      if (seatsRef.current) {
+        seatsRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 500);
+
   };
 
   return (
@@ -506,8 +520,8 @@ const FlightBooking = () => {
           redirectUrl="/login"
         />
       ) : (
-        <div className="flex flex-row flex-wrap p-4 md:p-10">
-          <div className="w-full md:w-3/4">
+        <div className="flex flex-row flex-wrap p-4 md:p-10" ref={seatsRef}>
+          <div className="w-full">
             {getUserDetails && (
               <div className="flex flex-col md:flex-row justify-center items-center space-y-6 md:space-y-0">
                 {(mode === "singleTrip" ||
@@ -526,7 +540,7 @@ const FlightBooking = () => {
                             : connectingFlightDetails.firstflight
                                 .SourceAirportName}
                         </h1>
-                        <span className="text-lg font-semibold mx-2">-</span>
+                        <span className="text-lg font-semibold mx-2">- </span>
                         <h1 className="text-lg font-semibold">
                           {mode === "singleTrip"
                             ? directFlightDetails.DestinationAirportName
